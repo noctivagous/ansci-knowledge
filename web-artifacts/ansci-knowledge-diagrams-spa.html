@@ -93,7 +93,10 @@
       main > h1, main > .lede, main > footer{ display:none; }
       .tabbar{ flex:0 0 auto; position:relative; top:auto; margin:2px 0 0; padding:6px 10px; z-index:30; }
       .tabbar-inner{ flex-wrap:nowrap; gap:6px; }
-      .tab-btn{ flex:1 1 0; min-height:40px; padding:5px 10px; flex-direction:row; align-items:baseline; gap:8px; border-radius:8px; }
+      .tab-btn{ flex:1 1 0; min-width:0; min-height:40px; padding:5px 10px; flex-direction:row; align-items:baseline; gap:8px; border-radius:8px; }
+      .tab-btn .tab-name{ flex:0 0 auto; }
+      .tab-btn .tab-sub{ min-width:0; }
+      @media (max-width:760px){ .tabbar-inner{ flex-wrap:wrap; } .tab-btn{ flex:1 1 30%; } }
       .tab-btn .tab-kicker{ display:none; }
       .tab-btn .tab-name{ font-size:.95rem; }
       .tab-btn .tab-sub{ font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -146,6 +149,25 @@
       text.lbl{ font-size:11px; fill:var(--ink); }
       text.lbl-sm{ font-size:9.5px; fill:var(--ink); }
       .hov{ cursor:pointer; }
+      /* vector glyphs, phasor setting, Legge blocks, category shells */
+      .glyph{ display:inline-block; vertical-align:-0.22em; }
+      .glyph-box{ position:relative; margin:8px 0 4px; }
+      .glyph-toggle{ position:absolute; top:0; right:0; z-index:2; }
+      .glyph-toggle button{ min-height:28px; padding:3px 9px; font-size:.78rem; }
+      .glyph-slot{ padding-top:32px; }
+      .yy-ph{ display:block; margin-top:2px; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:.8rem; color:var(--ink2); }
+      .legge{ border-top:1px dashed var(--line); margin-top:10px; padding-top:8px; }
+      .legge .legge-h{ font-weight:650; margin:0 0 4px; font-size:.9rem; }
+      .legge p{ margin:4px 0; font-size:.92rem; }
+      .phasor-set{ display:flex; align-items:flex-start; gap:7px; margin:6px 2px 0; font-size:.84rem; color:var(--ink2); cursor:pointer; flex-wrap:nowrap; }
+      .phasor-set input{ width:17px; height:17px; accent-color:var(--accent); flex:0 0 auto; margin-top:2px; }
+      .phasor-set > span{ flex:1 1 auto; min-width:0; }
+      .phasor-set b{ color:var(--ink); font-weight:600; white-space:nowrap; }
+      text.shell-lbl{ font-size:9.5px; font-weight:650; letter-spacing:.02em; }
+      .cap-layer rect{ stroke-linejoin:round; }
+      text.sec-name{ font-size:14px; font-weight:650; fill:var(--ink); }
+      text.sec-sub{ font-size:10px; fill:var(--ink); }
+      text.sec-assoc{ font-size:9px; fill:var(--ink2); }
     </style>
   </head>
   <body>
@@ -160,7 +182,31 @@
         proportion is exact, counted from their lines (yang lines over 3, resp. 6); for the phases the
         values are schematic — Fire at peak yang (~90%), Water at peak yin (~10% yang), Wood rising
         yang, Metal rising yin, Earth at balance (~50%) — and are labelled <i>schematic</i> wherever
-        they appear. At rest the gauge shows the balance of the whole displayed system.</p>
+        they appear. The readout also names the movement — waxing, waning, at a peak, balanced — and a
+        setting in the tab bar can add the same state as a complex number (z = balance + i·momentum)
+        with a phasor hand on the gauge. At rest the gauge shows the balance of the whole displayed system.
+        Every trigram and hexagram glyph is drawn as vector lines generated from the figure's own line
+        data — solid yang, broken yin, bottom line first — never as a font character, so the glyphs stay
+        exact at any size; every figure also carries its English name beside the Chinese and pinyin.
+        Each category on the circle sits inside a big outline ring-sector container that encloses its
+        labels — the creature classes （鱗 scaled, 羽 feathered, 倮 naked, 毛 furred, 介 shelled) inside the
+        creature-class container, and likewise the phases, flavours, seasons, trigrams and Luoshu
+        positions; in the ring view, each upper trigram's hexagrams inside its sector container; in the
+        composition view, the trigrams of each phase; in the bagua view, the octagon is sized the same
+        way, enclosing each station's name and element labels — and hovering a container highlights
+        its members. On every chart, when an item is highlighted — hovered or selected — a
+        <b>capsule</b> (a pill outline, turned to the label's own angle around the circle) is drawn around its label and around the labels of the items it
+        links to, so both ends of a highlighted relation can be found immediately. A fifth chart, the Wheel, shows another aspect of the same records:
+        yin and yang divided by a diameter at the centre, and the five phases as a seasonal ring around
+        it — Wood and Fire in the yang half, Earth astride the diameter, Metal and Water in the yin
+        half — with each phase's season and Luoshu associations carried inside its own ring-sector.
+        A sixth chart, the Bagua, stands alone: the eight trigrams in their octagon around a yin–yang
+        centre, with no Wuxing ring beneath them. Each trigram's element is stated as its association —
+        data, not geography — because the eight stations (45° apart) and the five sectors (72° apart)
+        partition the circle differently and cannot be drawn as one shared geometry without the
+        drawing starting to misstate the correspondences.
+        Different charts show different aspects of the same phenomena; each is bound to the same
+        records, so a thing selected in one aspect is the same thing in all the others.</p>
       <nav class="tabbar" aria-label="Diagrams">
         <div class="tabbar-inner" role="tablist" aria-label="Choose a diagram">
           <button class="tab-btn" role="tab" id="tab-flows" aria-controls="flows" aria-selected="true" data-tab="flows" type="button">
@@ -183,7 +229,21 @@
             <span class="tab-name">Composition</span>
             <span class="tab-sub">8 trigrams × 8 — the 64 hexagrams as ribbons</span>
           </button>
+          <button class="tab-btn" role="tab" id="tab-wheel" aria-controls="wheel" aria-selected="false" tabindex="-1" data-tab="wheel" type="button">
+            <span class="tab-kicker">Diagram 5 · Seasonal wheel</span>
+            <span class="tab-name">Wheel</span>
+            <span class="tab-sub">Yin–yang centre · Wuxing ring-sectors</span>
+          </button>
+          <button class="tab-btn" role="tab" id="tab-bagua" aria-controls="bagua" aria-selected="false" tabindex="-1" data-tab="bagua" type="button">
+            <span class="tab-kicker">Diagram 6 · Bagua octagon</span>
+            <span class="tab-name">Bagua</span>
+            <span class="tab-sub">Eight trigrams standing alone</span>
+          </button>
         </div>
+        <label class="phasor-set"><input type="checkbox" id="phasor-toggle">
+          <span><b>Phasor readout</b> — also show yin–yang as a complex number,
+          z = balance + i·momentum, with a hand on the centre gauge. Off by default; the plain
+          readout (e.g. “83% yang · waxing”) always shows.</span></label>
       </nav>
 
 
@@ -193,7 +253,14 @@
         <p class="sec-intro">The five phases, the five flavours, the five seasons and the five
           creature classes （五蟲） — and, with the 洛書·八卦 layer on, the nine Luoshu positions and the eight
           trigrams join the same circle, so a position's ribbons to its trigram and its phase, and a trigram's
-          ribbon to its phase, are drawn in the same view as the cycles. A ribbon runs from a node to what it produces, governs or is assigned to —
+          ribbon to its phase, are drawn in the same view as the cycles. <b>Flows B</b> is the same rim, the same
+          shells and the same records with a different centre: the five phases sit at the centre as a pentagon in
+          their Wheel arrangement — Wood at the left, Fire at the top, Earth at the right-hand pivot, Metal and
+          Water in the yin half — the generating cycle drawn as arrows around the pentagon and the controlling
+          cycle as the star inside it, and every rim item draws a spoke inward to its own phase instead of a
+          chord across the disc, so each phase's whole correspondence family reads at a glance and clicking a
+          centre phase isolates it. Where a scheme keys an item to a second phase, the item draws a second,
+          dashed spoke to that phase as well — the disagreement is the split. A ribbon runs from a node to what it produces, governs or is assigned to —
           the generating cycle （相生） and controlling cycle （相剋） among the phases themselves; the
           <i>Hongfan</i>'s flavour production (each phase's process makes a flavour); <i>Suwen</i> ch. 4's
           phase–season assignments; the <i>Yueling</i>'s season–class assignments; and the classes' phase
@@ -202,6 +269,11 @@
           node and the panel lists the assertions it aggregates — scheme, tier and source for each one;
           nothing in the diagram is only a count.</p>
         <div class="controls" id="flow-controls">
+          <span class="ctl-label">Aspect</span>
+          <div class="seg" id="flow-mode" role="group" aria-label="Flows aspect">
+            <button data-fmode="A" aria-pressed="false" type="button">Flows A · chord</button>
+            <button data-fmode="B" aria-pressed="true" type="button">Flows B · phases at centre</button>
+          </div>
           <span class="ctl-label">Links</span>
           <div class="grp">
             <label><input type="checkbox" data-kind="gen" checked> 相生 generating</label>
@@ -281,8 +353,8 @@
           on them and to their phases — the centre position has no trigram, and draws no such edge. The
           <i>Hexagrams</i> view changes the geometry itself: rings by derivation, phases at the core, the eight
           trigrams in the next ring, and the sixty-four hexagrams on the rim, each inside its upper trigram's
-          sector — sector membership is the upper trigram, a short radial tie confirms it, and one edge runs to
-          the lower trigram. <i>Composed</i> shows the sixty-four as single six-line units; <i>Decomposed</i>
+          sector — sector membership is the upper trigram, a short radial tie runs from that trigram into it,
+          and one edge runs from its lower trigram — the foundation, read first — into it. <i>Composed</i> shows the sixty-four as single six-line units; <i>Decomposed</i>
           splits each glyph into its two stacked trigrams and lights both parent ties, folding the sixty-four
           back into the eight.</p>
         <div class="controls">
@@ -325,8 +397,9 @@
       <!-- ============ 4 · COMPOSITION CHORD ============ -->
       <section id="composition" class="tab-panel" role="tabpanel" aria-labelledby="tab-composition" data-panel="composition" hidden>
         <h2>4 · How the hexagrams are composed</h2>
-        <p class="sec-intro">Eight nodes only: the trigrams. A ribbon runs from an upper trigram to a lower
-          trigram, and there is exactly one hexagram for every ordered pair — the ribbon <i>is</i> that
+        <p class="sec-intro">Eight nodes only: the trigrams. Each ribbon joins a lower trigram to an upper
+          trigram — a hexagram is built and read from the bottom up, the lower trigram forming its bottom
+          three lines and the upper trigram its top three — and there is exactly one hexagram for every ordered pair — the ribbon <i>is</i> that
           hexagram, numbered and named in the King Wen sequence. Ribbons that loop back to their own node
           are the eight pure hexagrams, one trigram doubled. Click a ribbon to see the hexagram it is,
           drawn as its six lines; click a trigram for the sixteen hexagrams it takes part in — eight as
@@ -341,6 +414,80 @@
         </div>
       </section>
 
+      <!-- ============ 5 · THE WHEEL ============ -->
+      <section id="wheel" class="tab-panel" role="tabpanel" aria-labelledby="tab-wheel" data-panel="wheel" hidden>
+        <h2>5 · The Wheel — yin–yang at the centre, the five phases in a ring</h2>
+        <p class="sec-intro">At the centre, <b>yin and yang divided by the diameter</b>: yang above the line,
+          yin below it. Around it, a ring of the <b>five phases in generating order</b> — five sectors of 72°,
+          laid clockwise from the left-hand end of the diameter in the Chinese orientation (south at the top,
+          east at the left): <b>Wood</b> begins at the left balance point and <b>Fire</b> crosses the top, both
+          inside the yang half; <b>Earth</b> is centred on the right-hand end of the diameter and split evenly
+          by it, half in yang and half in yin; then <b>Metal</b> and <b>Water</b> in the yin half, Water closing
+          the ring at the edge of yin, back at the balance point where Wood begins. Each sector names its
+          season and carries its associations — direction, colour, organ, flavour, tone and Luoshu number —
+          <b>inside its own ring-sector</b>. This Earth is the seasonal Earth — 長夏， late summer, the pivot
+          between Fire and Metal — not the centre placement other schemes give it: the centre here belongs to
+          the yin–yang division, and Earth's Luoshu number 5 rides in its sector. The bagua is <b>not</b> drawn
+          on this wheel: the eight trigram stations (45° apart) and these five sectors (72° apart) partition
+          the circle differently, so seating the trigrams over the sectors made the drawing misstate their
+          elements — pure-yin Kūn, for example, fell inside the Fire sector. The trigrams stand alone in
+          their own chart (the Bagua tab), where each element is stated as an association rather than implied
+          by position. Different charts show different aspects of the same phenomena — the Luoshu presentation
+          gives the centre to Earth (5); this one gives it to yin–yang.</p>
+        <div class="controls" id="wheel-controls">
+          <span class="ctl-label">Wheel</span>
+          <div class="grp">
+            <label><input type="checkbox" id="wheel-assoc" checked> Sector associations</label>
+          </div>
+        </div>
+        <div class="layout">
+          <figure id="fig-wheel"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-wheel">
+            <h3>Reading the wheel</h3>
+            <p class="sub">Hover a sector or the centre to have it explained. Click for its full record.</p>
+            <p class="src">Orientation: south at the top, east at the left — the orientation the Luoshu itself
+              uses. The diameter's two ends are the wheel's balance points: at the left, yang begins to wax
+              (Wood begins); at the right, yang begins to wane (Earth is centred).</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ 6 · THE BAGUA, STANDING ALONE ============ -->
+      <section id="bagua" class="tab-panel" role="tabpanel" aria-labelledby="tab-bagua" data-panel="bagua" hidden>
+        <h2>6 · The Bagua — the eight trigrams standing alone</h2>
+        <p class="sec-intro">The eight trigrams in their own traditional frame — an <b>octagon</b> — around a
+          <b>yin–yang centre</b>, with no Wuxing ring beneath them. Each trigram stands at its <b>Later Heaven
+          station</b>: Lí south at the top, Zhèn east at the left, Kǎn north at the bottom, Duì west at the
+          right, and the four corner trigrams between. A trigram's element is carried <b>explicitly</b>, as a
+          written association under its name — Qián and Duì are Metal, Zhèn and Xùn are Wood, Lí is Fire,
+          Kǎn is Water, Kūn and Gèn are Earth — never implied by whatever sector might lie beneath it, because
+          there is no sector beneath it. That separation is the point of this chart: the correspondence is a
+          table keyed by direction, and the two partitions of the circle (eight stations of 45°, five sectors
+          of 72°) cannot share one geometry without the drawing starting to misstate it. Earth in the bagua is
+          itself the clearest case — it occupies no arc at all, but two opposed corner stations, Kūn at the
+          southwest and Gèn at the northeast, the diagonal pair where the cycle turns. Each glyph is vector
+          lines drawn from its own line data — Kūn's three broken lines read as pure yin at any size — and
+          Legge's account of each trigram's symbolism is in the inspector.</p>
+        <div class="controls" id="bagua-controls">
+          <span class="ctl-label">Bagua</span>
+          <div class="grp">
+            <label><input type="checkbox" id="bagua-elem" checked> Element associations</label>
+            <label><input type="checkbox" id="bagua-opp" checked> Opposite pairs</label>
+          </div>
+        </div>
+        <div class="layout">
+          <figure id="fig-bagua"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-bagua">
+            <h3>Reading the bagua</h3>
+            <p class="sub">Hover a trigram or the centre to have it explained. Click for its full record, with Legge.</p>
+            <p class="src">Orientation: south at the top, east at the left, as in the Later Heaven arrangement.
+              Element associations follow each trigram's Later Heaven direction: Metal — Qián (northwest) and
+              Duì (west); Wood — Zhèn (east) and Xùn (southeast); Fire — Lí (south); Water — Kǎn (north);
+              Earth — Kūn (southwest) and Gèn (northeast).</p>
+          </aside>
+        </div>
+      </section>
+
       <footer>
         <p>Sources, as held in the repository: 禮記·月令 and its commentary tradition (creature classes,
           Gao You; Zheng Xuan's extension of the naked class to tigers and leopards is kept as a flagged,
@@ -351,7 +498,11 @@
           The Luoshu 洛書 and Hetu 河圖 are held in the same repository as
           diagram-schemes — arrangements of numbers and directions in their own right; the number rows in
           the tables above （角 8, 徵 7, 宮 5, 商 9, 羽 6) are the phases' numbers as <i>Suwen</i> ch. 4
-          and the <i>Shize</i> state them, a separate scheme from the Luoshu's nine positions.</p>
+          and the <i>Shize</i> state them, a separate scheme from the Luoshu's nine positions.
+          English names for the trigrams and hexagrams are the received names of the Wilhelm tradition;
+          the hexagram Judgments and the trigram symbolism quoted in the inspector are from James Legge's
+          <i>The I Ching</i> (Sacred Books of the East, vol. XVI, 1882), which is in the public domain —
+          Legge's own romanisation (Khien, Khwăn, Kăn…) is kept in those quotations.</p>
       </footer>
     </main>
     <div id="hover-card" hidden role="tooltip"></div>
@@ -378,6 +529,40 @@ function ribbonPath(r, s, t){ const [sx0,sy0]=polar(r,s.a0),[sx1,sy1]=polar(r,s.
 function labelTransform(a, r){ const deg = a*180/Math.PI - 90;
   return { transform: "rotate("+deg+") translate("+r+",0)" + (a > Math.PI ? " rotate(180)" : ""),
            anchor: a > Math.PI ? "end" : "start", x: a > Math.PI ? -6 : 6 }; }
+/* Rough rendered width of a rim label, for sizing shells: CJK glyphs take a
+   full em, other characters a little over half an em at these sizes. The
+   estimate runs slightly wide on purpose — a shell must enclose its labels,
+   never clip them. */
+function estLabelW(str, fs){ let w = 0; for (const ch of String(str)) w += ch.codePointAt(0) > 0x2E7F ? fs : fs*0.56; return w; }
+/* Category shell: a BIG annular ring-sector container spanning the angular
+   extent of a category's member items and extending radially beyond the ends
+   of their rim labels, so the labels sit INSIDE the shell's outline. The
+   category's own name is written along the arc in the container's inner
+   strip (between the rim arcs and where the member labels begin), at labelR
+   when given. Hovering the shell (or its label) highlights the members via
+   the caller's over/out handlers. */
+function addShell(svg, r0, r1, a0, a1, label, color, over, out, inside, labelR){
+  if (!(a1 > a0)) return null;
+  const p = el("path", {d:annulus(r0, r1, a0+0.004, a1-0.004), fill:color, "fill-opacity":0.07,
+    stroke:color, "stroke-opacity":0.55, "stroke-width":1, class:"hov"}, svg);
+  const mid = (a0+a1)/2;
+  let t;
+  if (inside && label){
+    /* Category label INSIDE the container: written along the arc (tangentially)
+       in its inner strip, centred on the span. */
+    const rm = labelR || (r0+r1)/2, lp = polar(rm, mid);
+    let rot = mid*180/Math.PI, rr = ((rot % 360)+360)%360;
+    if (rr > 90 && rr < 270) rot += 180;
+    t = txt(svg, label, {class:"shell-lbl hov", transform:"translate("+lp[0]+","+lp[1]+") rotate("+rot+")",
+      "text-anchor":"middle", dy:"0.35em", fill:color});
+  } else {
+    const lt = labelTransform(mid, r1+1);
+    t = txt(svg, label, {class:"shell-lbl hov", transform:lt.transform, "text-anchor":lt.anchor,
+      x:lt.x, dy:"0.35em", fill:color});
+  }
+  if (over){ [p,t].forEach(e => { e.addEventListener("mouseover", over); e.addEventListener("mouseout", out); }); }
+  return p;
+}
 /* Chord layout. directed: group arc = out+in, subgroups = out-flows then in-flows.
    symmetric: group arc = row sum, one chord per unordered pair. Returns {groups, chords}
    where each chord has .s/.t subgroup spans {a0,a1}, .i/.j node indices, .value. */
@@ -481,7 +666,7 @@ function recordSentence(r){
   if (r.relation.indexOf("phase of this position") === 0) return "<b>"+S+"</b> has the phase <b>"+O+"</b> — the phase of its direction, per the direction rows of the correspondence tables.";
   if (r.relation.indexOf("phase (Later Heaven)") === 0 || (r.scheme === "later-heaven")) return "In the Later Heaven arrangement, the trigram <b>"+S+"</b> belongs to the phase <b>"+O+"</b>.";
   if (r.relation.indexOf("opposite") === 0) return "<b>"+S+"</b> is paired opposite <b>"+O+"</b> in the King Wen pairing of the trigrams.";
-  if (r.relation === "composes") return "<b>"+S+"</b> composes <b>"+O+"</b> — a hexagram is its upper trigram set above its lower trigram.";
+  if (r.relation === "composes") return "<b>"+S+"</b> composes <b>"+O+"</b> — a hexagram is built from the bottom up: its lower trigram forms the first three lines and its upper trigram, set above it, completes the last three.";
   if (r.family && FAMILY_EXPLAIN[r.relation] !== undefined || ["direction","season","colour","organ","orifice","flavour","animal","grain","planet","tone","number","tissue","smell","climate","voice","change","emotion","thearch","assistant","implement","governance","creature","creature class","stem days","sacrifice","first offered organ","weapon","fruit","livestock","vegetable","fauna","process","flavour produced"].includes(r.relation))
     return "In "+sch+", the <b>"+esc(r.relation)+"</b> of <b>"+S+"</b> is <b>"+O+"</b> — "+esc(familyExplain(r.relation))+".";
   return "In "+sch+": <b>"+S+"</b> — "+esc(r.relation)+" — <b>"+O+"</b>.";
@@ -507,12 +692,91 @@ function bindHover(elm, getHTML){
   elm.addEventListener("mousemove", moveHover);
   elm.addEventListener("mouseout", hideHover);
 }
-function hoverRecordsHTML(title, records, intro){
-  let h = "<h4>"+esc(title)+"</h4>";
+function hoverRecordsHTML(title, records, intro, titleIsHTML){
+  /* title is plain text and is escaped — UNLESS titleIsHTML is set, in which
+     case the caller has built it as markup (a vector glyph SVG from
+     triGlyphSVG/hexGlyphSVG plus esc()'d text). Passing a glyph through the
+     plain path escaped the <svg> tags and showed raw SVG code in the card. */
+  let h = "<h4>"+(titleIsHTML ? title : esc(title))+"</h4>";
   if (intro) h += "<p>"+intro+"</p>";
   records.forEach(r => { if (!r) return;
     h += "<p>"+recordSentence(r)+"</p><p class='hc-meta'>"+recordMeta(r)+"</p>"; });
   return h;
+}
+
+/* ================= endpoint capsules =================
+   On EVERY chart, when an item is highlighted — hovered or selected — the
+   hovered item AND each item it links to get a CAPSULE: a pill outline drawn
+   around the endpoint's label (or glyph / centre node), so the eye can find
+   both ends of a highlighted relation immediately. Each capsule is ROTATED
+   to its element's orientation around the circle — a rim label's pill turns
+   with the label, tangent to its position — not drawn axis-aligned.
+   Capsules live on a
+   per-SVG overlay layer drawn last (on top); capShow() takes the endpoint
+   elements (nested arrays are flattened), clearCaps() removes them. Bounds
+   come from each element's rendered box, converted back into SVG coords. */
+function capLayer(svg){
+  let l = svg.querySelector(".cap-layer");
+  if (!l) l = el("g", {class:"cap-layer", "pointer-events":"none"}, svg);
+  else svg.appendChild(l); /* keep on top */
+  return l;
+}
+function clearCaps(svg){ if (!svg) return; const l = svg.querySelector(".cap-layer"); if (l) l.innerHTML = ""; }
+function capOne(svg, elm, color){
+  if (!elm || !svg) return;
+  const col = color || "#b03a2e";
+  /* ROTATED capsule: the pill follows the element's own rotation around the
+     circle — a rim label's capsule is turned to that label's angle (its
+     tangential/radial orientation as rendered), never an axis-aligned box.
+     The oriented box comes from the element's local getBBox() carried into
+     SVG coordinates by its CTM: the local x-axis maps to a direction vector
+     in the diagram, and the rect is rotated by that vector's angle about
+     the box centre. Unrotated elements (centre nodes, circles) get angle 0
+     and keep the plain pill they had before. */
+  try {
+    if (elm.getBBox && elm.getScreenCTM && svg.getScreenCTM){
+      const bb = elm.getBBox();
+      const sctm = svg.getScreenCTM();
+      if (bb && (bb.width || bb.height) && sctm){
+        const m = sctm.inverse().multiply(elm.getScreenCTM());
+        const pt = (x,y) => { const q = svg.createSVGPoint(); q.x = x; q.y = y; return q.matrixTransform(m); };
+        const p00 = pt(bb.x, bb.y), p10 = pt(bb.x + bb.width, bb.y), p01 = pt(bb.x, bb.y + bb.height);
+        const cen = pt(bb.x + bb.width/2, bb.y + bb.height/2);
+        const ux = p10.x - p00.x, uy = p10.y - p00.y, vx = p01.x - p00.x, vy = p01.y - p00.y;
+        const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
+        if (lu > 0.01 && lv > 0.01){
+          const w = lu + 9, h = lv + 7, ang = Math.atan2(uy, ux) * 180 / Math.PI;
+          const r = el("rect", {x:cen.x - w/2, y:cen.y - h/2, width:w, height:h, rx:Math.min(w, h)/2,
+            fill:col, "fill-opacity":0.07, stroke:col, "stroke-width":1.8, "stroke-opacity":0.95}, capLayer(svg));
+          if (Math.abs(ang) > 0.01) r.setAttribute("transform", "rotate(" + ang.toFixed(2) + " " + cen.x.toFixed(2) + " " + cen.y.toFixed(2) + ")");
+          return;
+        }
+      }
+    }
+  } catch(e){}
+  /* Fallback (non-SVG or unmeasurable element): axis-aligned pill from the
+     rendered box, as before. */
+  try {
+    if (!elm.getBoundingClientRect) return;
+    const r = elm.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    const ctm = svg.getScreenCTM(); if (!ctm) return;
+    const inv = ctm.inverse();
+    const conv = (x,y) => { const p = svg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(inv); };
+    const c1 = conv(r.left, r.top), c2 = conv(r.right, r.bottom);
+    const x = Math.min(c1.x, c2.x) - 4.5, y = Math.min(c1.y, c2.y) - 3.5;
+    const w = Math.abs(c2.x - c1.x) + 9, h = Math.abs(c2.y - c1.y) + 7;
+    el("rect", {x:x, y:y, width:w, height:h, rx:Math.min(w, h)/2, fill:col, "fill-opacity":0.07,
+      stroke:col, "stroke-width":1.8, "stroke-opacity":0.95}, capLayer(svg));
+  } catch(e){}
+}
+function capShow(svg, elms, color){
+  if (!svg) return;
+  clearCaps(svg);
+  const flat = [];
+  (function walk(e){ if (!e) return; if (Array.isArray(e)) e.forEach(walk); else flat.push(e); })(elms);
+  flat.forEach(e => capOne(svg, e, color));
+  if (flat.length) capLayer(svg);
 }
 
 
@@ -572,15 +836,32 @@ const CLASSES = [
    members:[["turtles","attested"],["crabs","attested"]], head:["tortoise 龜","chief · attested"]}
 ];
 const TRIGRAMS = [
-  {name:"Qian", hz:"乾", sym:"☰", nature:"天 heaven", lines:[1,1,1], phase:"Metal", dir:"northwest"},
-  {name:"Dui",  hz:"兌", sym:"☱", nature:"澤 lake",   lines:[1,1,0], phase:"Metal", dir:"west"},
-  {name:"Li",   hz:"離", sym:"☲", nature:"火 fire",   lines:[1,0,1], phase:"Fire",  dir:"south"},
-  {name:"Zhen", hz:"震", sym:"☳", nature:"雷 thunder",lines:[1,0,0], phase:"Wood",  dir:"east"},
-  {name:"Xun",  hz:"巽", sym:"☴", nature:"風 wind",   lines:[0,1,1], phase:"Wood",  dir:"southeast"},
-  {name:"Kan",  hz:"坎", sym:"☵", nature:"水 water",  lines:[0,1,0], phase:"Water", dir:"north"},
-  {name:"Gen",  hz:"艮", sym:"☶", nature:"山 mountain",lines:[0,0,1], phase:"Earth", dir:"northeast"},
-  {name:"Kun",  hz:"坤", sym:"☷", nature:"地 earth",  lines:[0,0,0], phase:"Earth", dir:"southwest"}
+  {name:"Qian", hz:"乾", en:"Heaven", nature:"天 heaven", lines:[1,1,1], phase:"Metal", dir:"northwest",
+   leggeShort:"the symbol of strength — heaven, and in the family the father; its animal is the horse, its part of the body the head",
+   legge:"Khien is (the symbol of) strength. It is heaven, and in the family the father; its animal is the horse, and its place in the body the head. Legge's Shuoh Kua adds: it suggests the idea of a circle, of a ruler, of jade, of metal, of cold, of ice, of deep red, of a good horse, and of the fruit of trees."},
+  {name:"Dui",  hz:"兌", en:"Lake", nature:"澤 lake",   lines:[1,1,0], phase:"Metal", dir:"west",
+   leggeShort:"pleasure and satisfaction — a low-lying collection of water, and in the family the youngest daughter; its animal is the sheep, its part of the body the mouth",
+   legge:"Tui is (the symbol of) pleasure and satisfaction. It is a low-lying collection of water (a lake or marsh), and in the family the youngest daughter; its animal is the sheep, and its place in the body the mouth. Legge's Shuoh Kua adds: it suggests the idea of a sorceress, of the mouth and tongue, of the decay and putting down of things in harvest, and of the removal of fruits hanging from the stems."},
+  {name:"Li",   hz:"離", en:"Fire", nature:"火 fire",   lines:[1,0,1], phase:"Fire",  dir:"south",
+   leggeShort:"what is bright and what is catching — fire and the sun, and in the family the second daughter; its animal is the pheasant, its part of the body the eyes",
+   legge:"Lî is (the symbol of) what is bright and what is catching. It is fire and the sun, and in the family the second daughter; its animal is the pheasant, and its place in the body the eyes. Legge's Shuoh Kua adds: it suggests the idea of lightning, of buff-coat and helmet, of spear and sword; it is the trigram of dryness, and it suggests the turtle, the crab and the tortoise."},
+  {name:"Zhen", hz:"震", en:"Thunder", nature:"雷 thunder",lines:[1,0,0], phase:"Wood",  dir:"east",
+   leggeShort:"stimulus to movement — thunder, and in the family the eldest son; its animal is the dragon, its part of the body the feet",
+   legge:"Kăn is (the symbol of) stimulus to movement. It is thunder, and in the family the eldest son; its animal is the dragon, and its place in the body the feet. Legge's Shuoh Kua adds: it suggests the idea of development, of a great highway, of decision and vehemence, of bright young bamboos, and of sedges and rushes."},
+  {name:"Xun",  hz:"巽", en:"Wind", nature:"風 wind",   lines:[0,1,1], phase:"Wood",  dir:"southeast",
+   leggeShort:"penetration — wind and wood, and in the family the eldest daughter; its animal is the fowl, its part of the body the thighs",
+   legge:"Sun is (the symbol of) penetration. It is wind and wood, and in the family the eldest daughter; its animal is the fowl, and its place in the body the thighs. Legge's Shuoh Kua adds: it suggests the idea of a plumb-line, of a carpenter's square, of being long, of being lofty, of advancing and receding, and of want of decision."},
+  {name:"Kan",  hz:"坎", en:"Water", nature:"水 water",  lines:[0,1,0], phase:"Water", dir:"north",
+   leggeShort:"what is precipitous and perilous — water, and in the family the second son; its animal is the pig, its part of the body the ears",
+   legge:"Khan is (the symbol of) what is precipitous and perilous. It is water, and in the family the second son; its animal is the pig, and its place in the body the ears. Legge's Shuoh Kua adds: it suggests the idea of channels and ditches, of being hidden and lying concealed, of being now straight and now crooked, of a bow and of a wheel; and, as referred to man, an increase of anxiety and distress of mind."},
+  {name:"Gen",  hz:"艮", en:"Mountain", nature:"山 mountain",lines:[0,0,1], phase:"Earth", dir:"northeast",
+   leggeShort:"stoppage or arrest — the mountain, and in the family the youngest son; its animal is the dog, its part of the body the hands",
+   legge:"Kăn is (the symbol of) stoppage or arrest. It is the mountain, and in the family the youngest son; its animal is the dog, and its place in the body the hands. Legge's Shuoh Kua adds: it suggests the idea of a by-path, of a small rock, of a gateway, of the fruits of trees and creeping plants, and of a porter."},
+  {name:"Kun",  hz:"坤", en:"Earth", nature:"地 earth",  lines:[0,0,0], phase:"Earth", dir:"southwest",
+   leggeShort:"docility — the earth, and in the family the mother; its animal is the ox, its part of the body the belly",
+   legge:"Khwăn is (the symbol of) docility. It is the earth, and in the family the mother; its animal is the ox, and its place in the body the belly. Legge's Shuoh Kua adds: it suggests the idea of cloth, of a caldron, of parsimony, of a young heifer, of a large waggon, of what is variegated, of a multitude, and of a handle and support; among soils, what is black."}
 ];
+function triLabel(t){ return t.hz+" "+t.name+" · "+t.en; }
 const OPPOSITES = [["Qian","Kun"],["Kan","Li"],["Zhen","Xun"],["Gen","Dui"]];
 /* The Luoshu's nine positions with the Later Heaven placement: each outer position
    carries a trigram and a direction; the centre (5) carries no trigram. Phase follows
@@ -610,31 +891,162 @@ const KW_TABLE = {
   Gen:[[26,"大畜"],[41,"損"],[22,"賁"],[27,"頤"],[18,"蠱"],[4,"蒙"],[52,"艮"],[23,"剝"]],
   Kun:[[11,"泰"],[19,"臨"],[36,"明夷"],[24,"復"],[46,"升"],[7,"師"],[15,"謙"],[2,"坤"]]
 };
+/* Per-hexagram names and meanings: [pinyin, received English name (Wilhelm tradition),
+   Legge's rendering of the name, Legge's translation of the Judgment (Thwan)].
+   Judgments are quoted from James Legge, The I Ching, Sacred Books of the East
+   vol. XVI (1882) — public domain. */
+const HEX_META = {
+1:["Qián","The Creative","Khien","Khien (represents) what is great and originating, penetrating, advantageous, correct and firm."],
+2:["Kūn","The Receptive","Khwăn","Khwăn (represents) what is great and originating, penetrating, advantageous, correct and having the firmness of a mare. When the superior man has to make any movement, if he take the initiative, he will go astray; if he follow, he will find his (proper) lord. The advantageousness will be seen in his getting friends in the south-west, and losing friends in the north-east. If he rest in correctness and firmness, there will be good fortune."],
+3:["Zhūn","Difficulty at the Beginning","Kun","Kun (indicates that in the case which it presupposes) there will be great progress and success, and the advantage will come from being correct and firm. (But) any movement in advance should not be (lightly) undertaken. There will be advantage in appointing feudal princes."],
+4:["Méng","Youthful Folly","Măng","Măng (indicates that in the case which it presupposes) there will be progress and success. I do not (go and) seek the youthful and inexperienced, but he comes and seeks me. When he shows (the sincerity that marks) the first recourse to divination, I instruct him. If he apply a second and third time, that is troublesome; and I do not instruct the troublesome. There will be advantage in being firm and correct."],
+5:["Xū","Waiting","Hsü","Hsü intimates that, with the sincerity which is declared in it, there will be brilliant success. With firmness there will be good fortune; and it will be advantageous to cross the great stream."],
+6:["Sòng","Conflict","Sung","Sung intimates how, though there is sincerity in one's contention, he will yet meet with opposition and obstruction; but if he cherish an apprehensive caution, there will be good fortune, while, if he must prosecute the contention to the (bitter) end, there will be evil. It will be advantageous to see the great man; it will not be advantageous to cross the great stream."],
+7:["Shī","The Army","Sze","Sze indicates how, in the case which it supposes, with firmness and correctness, and (a leader of) age and experience, there will be good fortune and no error."],
+8:["Bǐ","Holding Together","Pî","Pî indicates that (under the conditions which it supposes) there is good fortune. But let (the principal party intended in it) re-examine himself, (as if) by divination, whether his virtue be great, unintermitting, and firm. If it be so, there will be no error. Those who have not rest will then come to him; and with those who are (too) late in coming it will be ill."],
+9:["Xiǎo Xù","The Taming Power of the Small","Hsiâo Khû","Hsiâo Khû indicates that (under its conditions) there will be progress and success. (We see) dense clouds, but no rain coming from our borders in the west."],
+10:["Lǚ","Treading","Lî","(Lî suggests the idea of) one treading on the tail of a tiger, which does not bite him. There will be progress and success."],
+11:["Tài","Peace","Thâi","In Thâi (we see) the little gone and the great come. (It indicates that) there will be good fortune, with progress and success."],
+12:["Pǐ","Standstill","Phî","In Phî there is the want of good understanding between the (different classes of) men, and its indication is unfavourable to the firm and correct course of the superior man. We see in it the great gone and the little come."],
+13:["Tóng Rén","Fellowship with Men","Thung Zăn","Thung Zăn (or 'Union of men') appears here (as we find it) in the (remote districts of the) country, indicating progress and success. It will be advantageous to cross the great stream. It will be advantageous to maintain the firm correctness of the superior man."],
+14:["Dà Yǒu","Possession in Great Measure","Tâ Yû","Tâ Yû indicates that, (under the circumstances which it implies), there will be great progress and success."],
+15:["Qiān","Modesty","Khien","Khien indicates progress and success. The superior man, (being humble as it implies), will have a (good) issue (to his undertakings)."],
+16:["Yù","Enthusiasm","Yü","Yü indicates that, (in the state which it implies), feudal princes may be set up, and the hosts put in motion, with advantage."],
+17:["Suí","Following","Sui","Sui indicates that (under its conditions) there will be great progress and success. But it will be advantageous to be firm and correct. There will (then) be no error."],
+18:["Gǔ","Work on What Has Been Spoiled","Kû","Kû indicates great progress and success (to him who deals properly with the condition represented by it). There will be advantage in (efforts like that of) crossing the great stream. (He should weigh well, however, the events of) three days before the turning point, and those (to be done) three days after it."],
+19:["Lín","Approach","Lin","Lin (indicates that under the conditions supposed in it) there will be great progress and success, while it will be advantageous to be firmly correct. In the eighth month there will be evil."],
+20:["Guān","Contemplation","Kwân","Kwân shows (how he whom it represents should be like) the worshipper who has washed his hands, but not (yet) presented his offerings;—with sincerity and an appearance of dignity (commanding reverent regard)."],
+21:["Shì Kè","Biting Through","Shih Ho","Shih Ho indicates successful progress (in the condition of things which it supposes). It will be advantageous to use legal constraints."],
+22:["Bì","Grace","Pî","Pî indicates that there should be free course (in what it denotes). There will be little advantage (however) if it be allowed to advance (and take the lead)."],
+23:["Bō","Splitting Apart","Po","Po indicates that (in the state which it symbolises) it will not be advantageous to make a movement in any direction whatever."],
+24:["Fù","Return","Fû","Fû indicates that there will be free course and progress (in what it denotes). (The subject of it) finds no one to distress him in his exits and entrances; friends come to him, and no error is committed. He will return and repeat his (proper) course. In seven days comes his return. There will be advantage in whatever direction movement is made."],
+25:["Wú Wàng","Innocence","Wû Wang","Wû Wang indicates great progress and success, while there will be advantage in being firm and correct. If (its subject and his action) be not correct, he will fall into errors, and it will not be advantageous for him to move in any direction."],
+26:["Dà Xù","The Taming Power of the Great","Tâ Khû","Under the conditions of Tâ Khû it will be advantageous to be firm and correct. (If its subject do not seek to) enjoy his revenues in his own family (without taking service at court), there will be good fortune. It will be advantageous for him to cross the great stream."],
+27:["Yí","The Corners of the Mouth (Providing Nourishment)","Î","Î indicates that with firm correctness there will be good fortune (in what is denoted by it). We must look at what we are seeking to nourish, and by the exercise of our thoughts seek for the proper aliment."],
+28:["Dà Guò","Preponderance of the Great","Tâ Kwo","Tâ Kwo suggests to us a beam that is weak. There will be advantage in moving (under its conditions) in any direction whatever; there will be success."],
+29:["Kǎn","The Abysmal (Water)","Khan","Khan, here repeated, shows the possession of sincerity, through which the mind is penetrating. Action (in accordance with this) will be of high value."],
+30:["Lí","The Clinging (Fire)","Lî","Lî indicates that, (in regard to what it denotes), it will be advantageous to be firm and correct, and that thus there will be free course and success. Let (its subject) also nourish (a docility like that of) the cow, and there will be good fortune."],
+31:["Xián","Influence (Wooing)","Hsien","Hsien indicates that, (on the fulfilment of the conditions implied in it), there will be free course and success. Its advantageousness will depend on the being firm and correct, (as) in marrying a young lady. There will be good fortune."],
+32:["Héng","Duration","Hăng","Hăng indicates successful progress and no error (in what it denotes). But the advantage will come from being firm and correct; and movement in any direction whatever will be advantageous."],
+33:["Dùn","Retreat","Thun","Thun indicates successful progress (in its circumstances). To a small extent it will (still) be advantageous to be firm and correct."],
+34:["Dà Zhuàng","The Power of the Great","Tâ Kwang","Tâ Kwang indicates that (under the conditions which it symbolises) it will be advantageous to be firm and correct."],
+35:["Jìn","Progress","Žin","In Žin we see a prince who secures the tranquillity (of the people) presented on that account with numerous horses (by the king), and three times in a day received at interviews."],
+36:["Míng Yí","Darkening of the Light","Ming Î","Ming Î indicates that (in the circumstances which it denotes) it will be advantageous to realise the difficulty (of the position), and maintain firm correctness."],
+37:["Jiā Rén","The Family","Kiâ Zăn","For (the realisation of what is taught in) Kiâ Zăn, (or for the regulation of the family), what is most advantageous is that the wife be firm and correct."],
+38:["Kuí","Opposition","Khwei","Khwei indicates that, (notwithstanding the condition of things which it denotes), in small matters there will (still) be good success."],
+39:["Jiǎn","Obstruction","Kien","In (the state indicated by) Kien advantage will be found in the south-west, and the contrary in the north-east. It will be advantageous (also) to meet with the great man. (In these circumstances), with firmness and correctness, there will be good fortune."],
+40:["Xiè","Deliverance","Kieh","In (the state indicated by) Kieh advantage will be found in the south-west. If no (further) operations be called for, there will be good fortune in coming back (to the old conditions). If some operations be called for, there will be good fortune in the early conducting of them."],
+41:["Sǔn","Decrease","Sun","In (what is denoted by) Sun, if there be sincerity (in him who employs it), there will be great good fortune:—freedom from error; firmness and correctness that can be maintained; and advantage in every movement that shall be made. In what shall this (sincerity in the exercise of Sun) be employed? (Even) in sacrifice two baskets of grain, (though there be nothing else), may be presented."],
+42:["Yì","Increase","Yî","Yî indicates that (in the state which it denotes) there will be advantage in every movement which shall be undertaken, that it will be advantageous (even) to cross the great stream."],
+43:["Guài","Break-through (Resoluteness)","Kwâi","Kwâi requires (in him who would fulfil its meaning) the exhibition (of the culprit's guilt) in the royal court, and a sincere and earnest appeal (for sympathy and support), with a consciousness of the peril (involved in cutting off the criminal). He should (also) make announcement in his own city, and show that it will not be well to have recourse at once to arms. (In this way) there will be advantage in whatever he shall go forward to."],
+44:["Gòu","Coming to Meet","Kâu","Kâu shows a female who is bold and strong. It will not be good to marry (such) a female."],
+45:["Cuì","Gathering Together","Žhui","In (the state denoted by) Žhui, the king will repair to his ancestral temple. It will be advantageous (also) to meet with the great man; and then there will be progress and success, though the advantage must come through firm correctness. The use of great victims will conduce to good fortune; and in whatever direction movement is made, it will be advantageous."],
+46:["Shēng","Pushing Upward","Shăng","Shăng indicates that (under its conditions) there will be great progress and success. Seeking by (the qualities implied in it) to meet with the great man, its subject need have no anxiety. Advance to the south will be fortunate."],
+47:["Kùn","Oppression (Exhaustion)","Khwăn","In (the condition denoted by) Khwăn there may (yet be) progress and success. For the firm and correct, the (really) great man, there will be good fortune. He will fall into no error. If he make speeches, his words cannot be made good."],
+48:["Jǐng","The Well","Žing","(Looking at) Žing, (we think of) how (the site of) a town may be changed, while (the fashion of) its wells undergoes no change. (The water of a well) never disappears and never receives (any great) increase, and those who come and those who go can draw and enjoy the benefit. If (the drawing) have nearly been accomplished, but, before the rope has quite reached the water, the bucket is broken, this is evil."],
+49:["Gé","Revolution (Molting)","Ko","(What takes place as indicated by) Ko is believed in only after it has been accomplished. There will be great progress and success. Advantage will come from being firm and correct. (In that case) occasion for repentance will disappear."],
+50:["Dǐng","The Cauldron","Ting","Ting gives the intimation of great progress and success."],
+51:["Zhèn","The Arousing (Shock)","Kăn","Kăn gives the intimation of ease and development. When (the time of) movement (which it indicates) comes, (the subject of the hexagram) will be found looking out with apprehension, and yet smiling and talking cheerfully. When the movement (like a crash of thunder) terrifies all within a hundred lî, he will be (like the sincere worshipper) who is not (startled into) letting go his ladle and (cup of) sacrificial spirits."],
+52:["Gèn","Keeping Still (Mountain)","Kăn","When one's resting is like that of the back, and he loses all consciousness of self; when he walks in his courtyard, and does not see any (of the persons) in it,—there will be no error."],
+53:["Jiàn","Development (Gradual Progress)","Kien","Kien suggests to us the marriage of a young lady, and the good fortune (attending it). There will be advantage in being firm and correct."],
+54:["Guī Mèi","The Marrying Maiden","Kwei Mei","Kwei Mei indicates that (under the conditions which it denotes) action will be evil, and in no wise advantageous."],
+55:["Fēng","Abundance","Făng","Făng intimates progress and development. When a king has reached the point (which the name denotes) there is no occasion to be anxious (through fear of a change). Let him be as the sun at noon."],
+56:["Lǚ","The Wanderer","Lü","Lü intimates that (in the condition which it denotes) there may be some little attainment and progress. If the stranger or traveller be firm and correct as he ought to be, there will be good fortune."],
+57:["Xùn","The Gentle (The Penetrating, Wind)","Sun","Sun intimates that (under the conditions which it denotes) there will be some little attainment and progress. There will be advantage in movement onward in whatever direction. It will be advantageous (also) to see the great man."],
+58:["Duì","The Joyous (Lake)","Tui","Tui intimates that (under its conditions) there will be progress and attainment. (But) it will be advantageous to be firm and correct."],
+59:["Huàn","Dispersion","Hwân","Hwân intimates that (under its conditions) there will be progress and success. The king goes to his ancestral temple; and it will be advantageous to cross the great stream. It will be advantageous to be firm and correct."],
+60:["Jié","Limitation","Kieh","Kieh intimates that (under its conditions) there will be progress and attainment. (But) if the regulations (which it prescribes) be severe and difficult, they cannot be permanent."],
+61:["Zhōng Fú","Inner Truth","Kung Fû","Kung Fû (moves even) pigs and fish, and leads to good fortune. There will be advantage in crossing the great stream. There will be advantage in being firm and correct."],
+62:["Xiǎo Guò","Preponderance of the Small","Hsiao Kwo","Hsiao Kwo indicates that (in the circumstances which it implies) there will be progress and attainment. But it will be advantageous to be firm and correct. (What the name denotes) may be done in small affairs, but not in great affairs. (It is like) the notes that come down from a bird on the wing;—to descend is better than to ascend. There will (in this way) be great good fortune."],
+63:["Jì Jì","After Completion","Kî Žî","Kî Žî intimates progress and success in small matters. There will be advantage in being firm and correct. There has been good fortune in the beginning; there may be disorder in the end."],
+64:["Wèi Jì","Before Completion","Wei Žî","Wei Žî intimates progress and success (in the circumstances which it implies). (We see) a young fox that has nearly crossed (the stream), when its tail gets immersed. There will be no advantage in any way."]
+};
 const HEXAGRAMS = [];
 KW_ORDER.forEach(u => KW_TABLE[u].forEach(([num, nm], li) => {
   const U = TRIGRAMS.find(t=>t.name===u), L = TRIGRAMS.find(t=>t.name===KW_ORDER[li]);
+  const meta = HEX_META[num] || ["","","",""];
   HEXAGRAMS.push({n:num, name:nm, upper:u, lower:KW_ORDER[li],
-    sym:String.fromCodePoint(0x4DC0+num-1),
+    py:meta[0], en:meta[1], lg:meta[2], jdg:meta[3],
     linesTop:[U.lines[2],U.lines[1],U.lines[0],L.lines[2],L.lines[1],L.lines[0]]});
 }));
 HEXAGRAMS.sort((a,b)=>a.n-b.n);
 const hexByPair = (u,l) => HEXAGRAMS.find(h=>h.upper===u && h.lower===l);
-/* Six-line glyph as inline SVG; split=true separates the two parent trigrams. */
-function glyphSVG(h, split){
-  const W=56, lh=5, gap=3, extra = split?9:2, H = 6*lh + 5*gap + extra;
-  let s = "<svg width='"+(split?118:W)+"' height='"+H+"' viewBox='0 0 "+(split?118:W)+" "+H+"' role='img' aria-label='Hexagram "+h.n+" glyph'>";
-  h.linesTop.forEach((v,i)=>{ const y = i*(lh+gap) + (i>=3?extra:0);
-    if (v) s += "<rect x='0' y='"+y+"' width='"+W+"' height='"+lh+"' fill='currentColor'/>";
-    else s += "<rect x='0' y='"+y+"' width='25' height='"+lh+"' fill='currentColor'/><rect x='31' y='"+y+"' width='25' height='"+lh+"' fill='currentColor'/>"; });
-  if (split){ const U=TRIGRAMS.find(t=>t.name===h.upper), L=TRIGRAMS.find(t=>t.name===h.lower);
-    s += "<text x='64' y='14' font-size='10' fill='currentColor'>upper "+U.hz+" "+U.name+"</text>"+
-         "<text x='64' y='"+(H-2)+"' font-size='10' fill='currentColor'>lower "+L.hz+" "+L.name+"</text>"; }
-  return s + "</svg>";
+function hexNameShort(h){ return h.n+" "+h.name+" "+h.py+" · "+h.en; }
+function hexTitle(h){ return "Hexagram "+h.n+" · "+h.name+" "+h.py+" — "+h.en; }
+/* ===== Vector glyphs, generated from the line data itself (bottom line first).
+   A yang line is one bar; a yin line is two segments. No font glyphs anywhere. ===== */
+var GLYPH_MODE = "joined"; /* "joined" | "spaced" — shared by every hexagram popover */
+function glyphLines(linesBottomUp, spaced){
+  const lh=8, gap=5, extra = (spaced && linesBottomUp.length===6) ? 10 : 0;
+  const n = linesBottomUp.length, H = n*lh + (n-1)*gap + extra;
+  let s = "";
+  linesBottomUp.forEach((v,i)=>{ /* i = 0 is the bottom line */
+    const y = H - (i+1)*lh - i*gap - (i>=3 ? extra : 0);
+    if (v) s += "<rect x='0' y='"+y+"' width='60' height='"+lh+"'/>";
+    else s += "<rect x='0' y='"+y+"' width='26' height='"+lh+"'/><rect x='34' y='"+y+"' width='26' height='"+lh+"'/>"; });
+  return {s:s, H:H};
+}
+function triGlyphSVG(t, w){
+  const r = glyphLines(t.lines, false);
+  return "<svg class='glyph' width='"+w+"' height='"+Math.round(w*r.H/60)+"' viewBox='0 0 60 "+r.H+"' role='img' aria-label='Trigram "+t.name+" ("+t.en+") glyph'><g fill='currentColor'>"+r.s+"</g></svg>";
+}
+function hexGlyphSVG(h, w, mode, annotate){
+  const lines = h.linesTop.slice().reverse(); /* back to bottom-up */
+  const r = glyphLines(lines, mode==="spaced");
+  const totalW = annotate ? 190 : 60;
+  let ann = "";
+  if (annotate){
+    const U=TRIGRAMS.find(t=>t.name===h.upper), L=TRIGRAMS.find(t=>t.name===h.lower);
+    const y3top = r.H - 4*8 - 3*5 - (mode==="spaced" ? 10 : 0); /* top edge of line 4 (bottom-up idx 3) */
+    const yU = (0 + y3top + 8)/2 + 3.5, yL = ((r.H - 3*8 - 2*5) + r.H)/2 + 3.5;
+    ann = "<text x='68' y='"+yU.toFixed(1)+"' font-size='10.5' fill='currentColor'>upper "+triLabel(U)+"</text>"+
+          "<text x='68' y='"+yL.toFixed(1)+"' font-size='10.5' fill='currentColor'>lower "+triLabel(L)+"</text>";
+  }
+  return "<svg class='glyph' width='"+w+"' height='"+Math.round(w*r.H/totalW)+"' viewBox='0 0 "+totalW+" "+r.H+"' role='img' aria-label='Hexagram "+h.n+" ("+h.en+") glyph'><g fill='currentColor'>"+r.s+"</g>"+ann+"</svg>";
+}
+/* Inspector glyph block: toggle in the upper-right corner switches joined | spaced;
+   the upper/lower annotations stay at the glyph's right in both modes. */
+function glyphBoxHTML(h){
+  return "<div class='glyph-box'><div class='glyph-toggle seg' role='group' aria-label='Hexagram glyph style'>"+
+    "<button type='button' data-gm='joined' aria-pressed='"+(GLYPH_MODE==="joined")+"'>joined</button>"+
+    "<button type='button' data-gm='spaced' aria-pressed='"+(GLYPH_MODE==="spaced")+"'>spaced</button></div>"+
+    "<div class='glyph-slot'>"+hexGlyphSVG(h, 216, GLYPH_MODE, true)+"</div></div>";
+}
+function wireGlyphBox(root, h){
+  if (!root) return;
+  root.querySelectorAll(".glyph-toggle button").forEach(b => b.addEventListener("click", ()=>{
+    GLYPH_MODE = b.getAttribute("data-gm");
+    root.querySelectorAll(".glyph-toggle button").forEach(x => x.setAttribute("aria-pressed", x.getAttribute("data-gm")===GLYPH_MODE ? "true" : "false"));
+    const slot = root.querySelector(".glyph-slot");
+    if (slot) slot.innerHTML = hexGlyphSVG(h, 216, GLYPH_MODE, true);
+  }));
+}
+/* DOM version for drawing glyphs inside the diagrams; centred on (0,0). */
+function glyphGroup(parent, linesBottomUp, w, color){
+  const g = el("g", {class:"hov"}, parent);
+  const n = linesBottomUp.length, lh = w*0.135, gap = w*0.085, H = n*lh + (n-1)*gap, seg = w*0.433;
+  linesBottomUp.forEach((v,i)=>{
+    const y = -H/2 + (n-1-i)*(lh+gap);
+    if (v) el("rect", {x:-w/2, y:y, width:w, height:lh, fill:color}, g);
+    else { el("rect", {x:-w/2, y:y, width:seg, height:lh, fill:color}, g);
+           el("rect", {x:w/2-seg, y:y, width:seg, height:lh, fill:color}, g); }
+  });
+  return g;
+}
+function hexLeggeHTML(h){
+  return "<div class='legge'><p class='legge-h'>What it means — Legge's Judgment</p>"+
+    "<p>Legge renders the name <i>"+esc(h.lg)+"</i>: “"+esc(h.jdg)+"”</p>"+
+    "<p class='hc-meta'>James Legge, <i>The I Ching</i>, Sacred Books of the East vol. XVI (1882) — public domain.</p></div>";
+}
+function triLeggeHTML(t){
+  return "<div class='legge'><p class='legge-h'>What it means — Legge's Shuoh Kua</p>"+
+    "<p>"+esc(t.legge)+"</p>"+
+    "<p class='hc-meta'>After James Legge's translation of the Shuoh Kua, “Treatise of Remarks on the Trigrams” (Appendix V of his <i>I Ching</i>, 1882) — public domain.</p></div>";
 }
 function hexRecord(h){
   const U=TRIGRAMS.find(t=>t.name===h.upper), L=TRIGRAMS.find(t=>t.name===h.lower);
-  return {scheme:"composition", schemeLabel:"composition of the trigrams", subject:U.hz+" "+U.name+" over "+L.hz+" "+L.name,
-    relation:"composes", object:"Hexagram "+h.n+" · "+h.name, tier:"derived — 8 × 8 composition",
+  return {scheme:"composition", schemeLabel:"composition of the trigrams", subject:triLabel(U)+" over "+triLabel(L),
+    relation:"composes", object:"Hexagram "+h.n+" · "+h.name+" "+h.py+" — "+h.en, tier:"derived — 8 × 8 composition",
     source:"King Wen sequence, no. "+h.n, phase:null, family:"hexagram", norm:""};
 }
 
@@ -760,13 +1172,41 @@ const PHASE_YY = { Wood:{yang:0.65, note:"rising yang"}, Fire:{yang:0.90, note:"
   Earth:{yang:0.50, note:"balance"}, Metal:{yang:0.35, note:"rising yin"}, Water:{yang:0.10, note:"peak yin"} };
 const triYang = t => t.lines.reduce((a,b)=>a+b,0)/3;
 const hexYang = h => h.linesTop.reduce((a,b)=>a+b,0)/6;
-function yyBarHTML(frac, kind){
+/* Movement: the plain readout carries a direction word (waxing / waning / peak /
+   balanced). Behind the phasor setting, the same state is also a complex number
+   z = balance + i·momentum: real part 2·frac−1, imaginary part the schematic
+   momentum of the phase cycle (Wood waxing +, Metal waning −, peaks and Earth 0). */
+const PHASE_MOVE = { Wood:{w:"waxing", im:0.7}, Fire:{w:"peak yang", im:0}, Earth:{w:"balanced", im:0},
+  Metal:{w:"waning", im:-0.7}, Water:{w:"peak yin", im:0} };
+function phaseMove(p){ return PHASE_MOVE[p] || {w:"", im:0}; }
+function triMove(t){ return phaseMove(t.phase); }
+function moveWord(re, im){
+  if (im > 0.05) return "waxing";
+  if (im < -0.05) return "waning";
+  if (re > 0.25) return "peak yang";
+  if (re < -0.25) return "peak yin";
+  return "balanced";
+}
+function hexMove(h){
+  const L = TRIGRAMS.find(t=>t.name===h.lower), U = TRIGRAMS.find(t=>t.name===h.upper);
+  const im = (phaseMove(L.phase).im + phaseMove(U.phase).im)/2;
+  return {w: moveWord(2*hexYang(h)-1, im), im: im};
+}
+function yyZ(yy){ return yy && yy.mv ? {re: 2*yy.frac-1, im: yy.mv.im, w: yy.mv.w} : null; }
+window.PHASOR_ON = false;
+function yyBarHTML(frac, kind, mv){
   const pct = Math.round(frac*100), w = 64;
-  return "<span style='display:inline-flex;align-items:center;gap:7px;vertical-align:-3px'>"+
+  let s = "<span style='display:inline-flex;align-items:center;gap:7px;vertical-align:-3px'>"+
     "<svg width='"+w+"' height='9' viewBox='0 0 "+w+" 9' aria-hidden='true'>"+
     "<rect x='0' y='0' width='"+w+"' height='9' fill='#cfc6ae'/>"+
     "<rect x='0' y='0' width='"+(w*frac)+"' height='9' fill='#26221a'/></svg>"+
-    "<span>"+pct+"% yang · "+esc(kind)+"</span></span>";
+    "<span>"+pct+"% yang"+(mv ? " · "+esc(mv.w) : "")+" · "+esc(kind)+"</span></span>";
+  if (window.PHASOR_ON && mv){
+    const re = 2*frac-1, im = mv.im, mod = Math.hypot(re, im), th = Math.round(Math.atan2(im, re)*180/Math.PI);
+    const f2 = x => (x<0 ? "−" : "+") + Math.abs(x).toFixed(2);
+    s += "<span class='yy-ph'>z = "+f2(re)+" "+(im<0 ? "−" : "+")+" "+Math.abs(im).toFixed(2)+"i · |z| "+mod.toFixed(2)+" · θ "+th+"° — balance + i·momentum (momentum schematic, from the phase cycle)</span>";
+  }
+  return s;
 }
 /* Taijitu centre gauge: fixed black/white medallion, a proportion ring for the
    yang fraction, rotation tilting with imbalance, % label beneath. Returns update(frac). */
@@ -781,14 +1221,25 @@ function taijitu(parent, r, restFrac){
   el("circle", {cx:0, cy:-(r/2), r:r*0.16, fill:"#f5efe2"}, med);
   el("circle", {cx:0, cy:(r/2), r:r*0.16, fill:"#26221a"}, med);
   const label = txt(g, "", {"text-anchor":"middle", y:r+22, class:"lbl-sm"});
-  function update(frac){
+  const hand = el("g", {style:"display:none"}, g);
+  const handLine = el("line", {x1:0, y1:0, x2:0, y2:0, stroke:"#b03a2e", "stroke-width":1.7}, hand);
+  const handDot = el("circle", {r:2.3, fill:"#b03a2e"}, hand);
+  function update(frac, z){
     const a0 = -Math.PI/2, a1 = a0 + frac*2*Math.PI;
     const [x0,y0] = [ (r+5)*Math.cos(a0), (r+5)*Math.sin(a0) ], [x1,y1] = [ (r+5)*Math.cos(a1), (r+5)*Math.sin(a1) ];
     ring.setAttribute("d", frac<=0 ? "" : frac>=1 ? "" :
       "M"+x0+","+y0+" A"+(r+5)+","+(r+5)+" 0 "+(frac>0.5?1:0)+" 1 "+x1+","+y1);
     if (frac>=1) ring.setAttribute("d","M"+(-r-5)+",0 A"+(r+5)+","+(r+5)+" 0 1 1 "+(r+5)+",0 A"+(r+5)+","+(r+5)+" 0 1 1 "+(-r-5)+",0");
     med.setAttribute("transform", "rotate("+((frac-0.5)*180)+")");
-    label.textContent = Math.round(frac*100)+"% yang";
+    label.textContent = Math.round(frac*100)+"% yang"+(z && z.w ? " · "+z.w : "");
+    if (window.PHASOR_ON && z){
+      const mod = Math.hypot(z.re, z.im), len = Math.min(1, mod) * (r-1.5);
+      const ang = Math.atan2(-z.im, z.re); /* SVG y is down: momentum up = waxing */
+      const hx = len*Math.cos(ang), hy = len*Math.sin(ang);
+      handLine.setAttribute("x2", hx); handLine.setAttribute("y2", hy);
+      handDot.setAttribute("cx", hx); handDot.setAttribute("cy", hy);
+      hand.setAttribute("style", "display:block");
+    } else hand.setAttribute("style", "display:none");
   }
   update(restFrac);
   return {update};
@@ -827,7 +1278,7 @@ function arrowDefs(svg){
   [["spring","Wood"],["summer","Fire"],["late summer","Earth"],["autumn","Metal"],["winter","Water"]]
     .forEach(([s,p]) => nodes.push({id:"season:"+s, label:s, group:p, kind:"season"}));
   CLASSES.forEach(c => nodes.push({id:"class:"+c.id, label:c.hz+" "+c.name, group:c.phase, kind:"class", cls:c}));
-  TRIGRAMS.forEach(t => nodes.push({id:"tri:"+t.name, label:t.sym+" "+t.hz+" "+t.name, group:t.phase, kind:"trigram"}));
+  TRIGRAMS.forEach(t => nodes.push({id:"tri:"+t.name, label:triLabel(t), group:t.phase, kind:"trigram"}));
   LUOSHU.forEach(p => { const tn = p.trigram ? TRIGRAMS.find(t=>t.name===p.trigram) : null;
     nodes.push({id:"luo:"+p.n, label:p.n+" · "+p.dir+(tn ? " "+tn.hz : ""), group:p.phase, kind:"Luoshu position",
       note: p.n===5 ? "The centre of the Luoshu. No trigram is placed here in the Later Heaven arrangement — the centre belongs to Earth, and the gap is left as it stands in the record." : null}); });
@@ -857,52 +1308,83 @@ function arrowDefs(svg){
       FLOWS.push({s:"luo:"+n, t:r.phase, kind:"luoshu", w:1, records:[r]});
   });
   let selection = null, centre1 = null;
+  let flowsMode = "B", spokeEls = []; /* Flows B (phases at the centre) is the default view; Flows A stays on the toggle */
+  /* endpoint-capsule registries for Flows A and B: node id -> label element(s);
+     in B, phase name -> centre node group. Rebuilt by every draw. */
+  let flowSvg = null, flowLabelEls = {}, flowPhaseEls = {}, flowPin = null;
+  function flowCapsFor(id){ const out = []; if (flowLabelEls[id]) out.push(flowLabelEls[id]); if (flowPhaseEls[id]) out.push(flowPhaseEls[id]); return out; }
+  function linkedFlowIds(id){ const s = new Set();
+    FLOWS.forEach(f => { if (f.s===id) s.add(f.t); if (f.t===id) s.add(f.s); });
+    if (flowsMode === "B") nodes.forEach(n => { if (n.group===id && n.kind!=="phase") s.add(n.id); });
+    s.delete(id); return [...s]; }
+  function refreshFlowCaps(){ if (!flowSvg) return;
+    if (!selection){ if (flowPin) capShow(flowSvg, flowPin.map(flowCapsFor)); else clearCaps(flowSvg); return; }
+    capShow(flowSvg, [flowCapsFor(selection.id), ...linkedFlowIds(selection.id).map(flowCapsFor)]); }
   function yyOfNode(n){
     if (n.kind==="trigram"){ const t = TRIGRAMS.find(x=>"tri:"+x.name===n.id);
-      return {frac:triYang(t), kind:"exact — counted from the trigram's lines"}; }
-    if (n.kind==="phase") return {frac:PHASE_YY[n.id].yang, kind:"schematic · "+PHASE_YY[n.id].note};
-    return {frac:PHASE_YY[n.group].yang, kind:"schematic — its phase "+n.group+"'s value ("+PHASE_YY[n.group].note+")"};
+      return {frac:triYang(t), kind:"exact — counted from the trigram's lines", mv:triMove(t)}; }
+    if (n.kind==="phase") return {frac:PHASE_YY[n.id].yang, kind:"schematic · "+PHASE_YY[n.id].note, mv:phaseMove(n.id)};
+    return {frac:PHASE_YY[n.group].yang, kind:"schematic — its phase "+n.group+"'s value ("+PHASE_YY[n.group].note+")", mv:phaseMove(n.group)};
   }
   function nodeDetail(n){
-    selection = n;
+    selection = n; flowPin = null;
     const recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
-    const yy = yyOfNode(n); if (centre1) centre1.update(yy.frac);
-    let h = "<h3>"+esc(n.label)+"</h3><p class='sub'>"+esc(n.kind)+" · phase "+esc(n.group)+" · "+recs.length+" assertions in its links</p>"+
-      "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind)+"</p>";
+    const yy = yyOfNode(n); if (centre1) centre1.update(yy.frac, yyZ(yy));
+    const t3 = n.kind==="trigram" ? TRIGRAMS.find(x=>"tri:"+x.name===n.id) : null;
+    let h = "<h3>"+(t3 ? triGlyphSVG(t3, 20)+" " : "")+esc(n.label)+"</h3><p class='sub'>"+esc(n.kind)+" · phase "+esc(n.group)+" · "+recs.length+" assertions in its links</p>"+
+      "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind, yy.mv)+"</p>";
+    if (t3) h += triLeggeHTML(t3);
     if (n.note) h += "<p class='src'>"+esc(n.note)+"</p>";
     if (n.cls) h += "<p class='src'>Criterion: "+esc(n.cls.criterion)+". Chief: "+esc(n.cls.head[0])+" ("+esc(n.cls.head[1])+").</p>";
     insp.innerHTML = h + recordsHTML(recs, false);
     applyIsolate();
+    refreshFlowCaps();
   }
   let ribbonEls = [], arcEls = [];
   function applyIsolate(){
     const on = document.getElementById("flow-isolate").checked && selection;
+    if (flowsMode === "B"){
+      spokeEls.forEach(s => {
+        const hit = on && (s.nodeId===selection.id || s.phase===selection.id);
+        s.path.setAttribute("stroke-opacity", !on ? s.op : (hit ? 0.95 : 0.05));
+      });
+      return;
+    }
     ribbonEls.forEach(({path, flow}) => {
       path.setAttribute("fill-opacity", !on ? 0.62 : (flow.s===selection.id||flow.t===selection.id ? 0.9 : 0.05));
     });
   }
-  function draw(){
+  function drawA(){
     const kinds = new Set([...document.querySelectorAll("#flow-controls input[data-kind]:checked")].map(i=>i.dataset.kind));
     const flows = FLOWS.filter(f=>kinds.has(f.kind));
     const m = nodes.map(()=>nodes.map(()=>0));
     flows.forEach(f=> m[idx[f.s]][idx[f.t]] += f.w);
     const size = 640, outer = size/2 - 92, inner = outer - 22;
+    /* Rim labels start at outer+38 and run radially outward (trigram labels
+       start further out, past their glyph). The category shells below are
+       sized to enclose them, so the view is sized to enclose the shells. */
+    const labelEnd = n => outer + 38 + (n.kind==="trigram" ? 18 : 0) + estLabelW(n.label, 11);
+    const half = Math.max(size/2 + 60, Math.ceil(Math.max(...nodes.map(labelEnd)) + 18));
     const fig = document.getElementById("fig-flows"); fig.innerHTML = "";
-    const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+    const svg = el("svg", {viewBox:(-half)+" "+(-half)+" "+(half*2)+" "+(half*2), role:"img",
       "aria-label":"Directed chord diagram of flows among phases, flavours, seasons and creature classes"}, fig);
     const {groups, chords} = chordLayout(m, 0.035, true);
     arrowDefs(svg);
     ribbonEls = []; arcEls = [];
+    flowSvg = svg; flowLabelEls = {}; flowPhaseEls = {};
     chords.forEach(ch => {
       const flow = flows.find(f=>idx[f.s]===ch.i && idx[f.t]===ch.j);
       const p = el("path", {d:ribbonPath(inner-1, ch.s, ch.t), fill:PCOL[nodes[ch.j].group],
         "fill-opacity":0.62, class:"hov"}, svg);
       const title = el("title", {}, p); title.textContent = nodes[ch.i].label+" → "+nodes[ch.j].label;
       p.addEventListener("click", ()=>{ insp.innerHTML = "<h3>"+esc(nodes[ch.i].label)+" → "+esc(nodes[ch.j].label)+"</h3>"+
-        "<p class='sub'>"+flow.records.length+" assertion"+(flow.records.length>1?"s":"")+" inside this ribbon</p>"+recordsHTML(flow.records,false); });
+        "<p class='sub'>"+flow.records.length+" assertion"+(flow.records.length>1?"s":"")+" inside this ribbon</p>"+recordsHTML(flow.records,false);
+        selection = null; flowPin = [nodes[ch.i].id, nodes[ch.j].id];
+        capShow(svg, [flowCapsFor(nodes[ch.i].id), flowCapsFor(nodes[ch.j].id)]); });
       p.addEventListener("mouseover", ()=>{ if(!document.getElementById("flow-isolate").checked || !selection)
-        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", r.path===p?0.9:0.08)); });
-      p.addEventListener("mouseout", applyIsolate);
+        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", r.path===p?0.9:0.08));
+        capShow(svg, [flowCapsFor(nodes[ch.i].id), flowCapsFor(nodes[ch.j].id)]); });
+      p.addEventListener("mouseout", ()=>{ applyIsolate(); refreshFlowCaps(); });
       bindHover(p, ()=>hoverRecordsHTML(nodes[ch.i].label+" \u2192 "+nodes[ch.j].label, flow.records,
         "This ribbon is the flow from <b>"+esc(nodes[ch.i].label)+"</b> (a "+esc(nodes[ch.i].kind)+", phase "+esc(nodes[ch.i].group)+") to <b>"+esc(nodes[ch.j].label)+"</b> (a "+esc(nodes[ch.j].kind)+", phase "+esc(nodes[ch.j].group)+"). It aggregates "+flow.records.length+" assertion"+(flow.records.length>1?"s":"")+":"));
       if (ch.t.a1 - ch.t.a0 > 0.012){
@@ -912,22 +1394,61 @@ function arrowDefs(svg){
       }
       ribbonEls.push({path:p, flow});
     });
+    /* Category shells: one BIG ring-sector container per kind of node, spanning
+       its members angularly and extending radially past the ends of their
+       labels — 介 shelled, 毛 furred, 倮 naked, 羽 feathered, 鱗 scaled sit
+       INSIDE the creature-class container's outline, and likewise for every
+       other kind. The kind's name runs along the arc in the container's
+       inner strip, inside the rim arcs' radius and the labels' start. */
+    const KIND_SHELL = {"phase":"The five phases · 五行", "flavour":"Flavours · 五味", "season":"Seasons · 四時",
+      "class":"Creature classes · 五蟲", "trigram":"The eight trigrams · 八卦", "Luoshu position":"Luoshu positions · 洛書"};
+    Object.keys(KIND_SHELL).forEach(kind => {
+      const mem = nodes.map((n,i)=> (n.kind===kind && groups[i].value>0) ? i : -1).filter(i=>i>=0);
+      if (!mem.length) return;
+      const a0 = Math.min(...mem.map(i=>groups[i].a0)), a1 = Math.max(...mem.map(i=>groups[i].a1));
+      const r1 = Math.max(...mem.map(i=>labelEnd(nodes[i]))) + 10;
+      const ids = new Set(mem.map(i=>nodes[i].id));
+      addShell(svg, outer+3, r1, a0-0.014, a1+0.014, KIND_SHELL[kind], "#8a6d3b",
+        ()=>{ ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", (ids.has(r.flow.s)||ids.has(r.flow.t))?0.9:0.06));
+              arcEls.forEach(a=>a.path.setAttribute("fill-opacity", ids.has(nodes[a.i].id) ? 1 : 0.3));
+              capShow(svg, mem.map(i=>flowCapsFor(nodes[i].id))); },
+        ()=>{ arcEls.forEach(a=>a.path.setAttribute("fill-opacity",0.92)); applyIsolate(); refreshFlowCaps(); }, true, outer+14);
+    });
     groups.forEach((g,i) => {
       if (g.value<=0) return;
       const p = el("path", {d:annulus(inner, outer, g.a0, g.a1), fill:PCOL[nodes[i].group], "fill-opacity":0.92, class:"hov"}, svg);
       p.addEventListener("click", ()=>nodeDetail(nodes[i]));
       p.addEventListener("mouseover", ()=>{ if(!selection || !document.getElementById("flow-isolate").checked)
-        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", (r.flow.s===nodes[i].id||r.flow.t===nodes[i].id)?0.9:0.08)); });
-      p.addEventListener("mouseout", applyIsolate);
-      arcEls.push(p);
+        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", (r.flow.s===nodes[i].id||r.flow.t===nodes[i].id)?0.9:0.08));
+        capShow(svg, [flowCapsFor(nodes[i].id), ...linkedFlowIds(nodes[i].id).map(flowCapsFor)]); });
+      p.addEventListener("mouseout", ()=>{ applyIsolate(); refreshFlowCaps(); });
+      arcEls.push({path:p, i});
       bindHover(p, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
         return hoverRecordsHTML(n.label, recs.slice(0,4),
           "This arc is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" in the "+esc(n.group)+" phase group."+(n.note ? " "+esc(n.note) : "")+(n.cls ? " Criterion: "+esc(n.cls.criterion)+"." : "")+" Its links state:"); });
-      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
-      const t = txt(svg, nodes[i].label, {class:"lbl", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em", class:"lbl hov"});
-      t.addEventListener("click", ()=>nodeDetail(nodes[i]));
-      bindHover(t, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
-        return hoverRecordsHTML(n.label, recs.slice(0,4), "This is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" in the "+esc(n.group)+" phase group. Its links state:"); });
+      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+32);
+      if (nodes[i].kind==="trigram"){
+        const t3 = TRIGRAMS.find(x=>"tri:"+x.name===nodes[i].id), gw = 13;
+        const lg = el("g", {transform:lt.transform, class:"hov"}, svg);
+        const gg = glyphGroup(lg, t3.lines, gw, "var(--ink)");
+        gg.setAttribute("transform", "translate("+(lt.anchor==="start" ? lt.x+gw/2 : lt.x-gw/2)+",0)");
+        txt(lg, triLabel(t3), {class:"lbl hov", "text-anchor":lt.anchor, x: lt.anchor==="start" ? lt.x+gw+5 : lt.x-gw-5, dy:"0.35em"});
+        flowLabelEls[nodes[i].id] = lg;
+        lg.addEventListener("click", ()=>nodeDetail(nodes[i]));
+        lg.addEventListener("mouseover", ()=>capShow(svg, [flowCapsFor(nodes[i].id), ...linkedFlowIds(nodes[i].id).map(flowCapsFor)]));
+        lg.addEventListener("mouseout", refreshFlowCaps);
+        bindHover(lg, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+          return hoverRecordsHTML(triGlyphSVG(t3,15)+" "+esc(triLabel(t3)), recs.slice(0,4),
+            "This is the trigram <b>"+esc(triLabel(t3))+"</b> — "+esc(t3.nature)+", in the "+esc(n.group)+" phase group. Legge: "+esc(t3.leggeShort)+". Its links state:", true); });
+      } else {
+        const t = txt(svg, nodes[i].label, {transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em", class:"lbl hov"});
+        flowLabelEls[nodes[i].id] = t;
+        t.addEventListener("click", ()=>nodeDetail(nodes[i]));
+        t.addEventListener("mouseover", ()=>capShow(svg, [flowCapsFor(nodes[i].id), ...linkedFlowIds(nodes[i].id).map(flowCapsFor)]));
+        t.addEventListener("mouseout", refreshFlowCaps);
+        bindHover(t, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+          return hoverRecordsHTML(n.label, recs.slice(0,4), "This is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" in the "+esc(n.group)+" phase group. Its links state:"); });
+      }
     });
     const ov = new Set([...document.querySelectorAll("#flow-controls input[data-overlay]:checked")].map(i=>i.dataset.overlay));
     if (ov.size){ const pos = {}; PHASES.forEach((p,i)=>{ const g = groups[i];
@@ -935,9 +1456,189 @@ function arrowDefs(svg){
       cycleOverlays(svg, pos, ov.has("gen"), ov.has("ctl"), inner-52); }
     const rest = nodes.reduce((a,n)=>a+yyOfNode(n).frac,0)/nodes.length;
     centre1 = taijitu(svg, 30, rest);
-    if (selection) centre1.update(yyOfNode(selection).frac);
+    if (selection) { const yy = yyOfNode(selection); centre1.update(yy.frac, yyZ(yy)); }
     applyIsolate();
+    refreshFlowCaps();
   }
+  /* ================= Flows B: the five phases at the centre =================
+     Same rim, same shells, same records as Flows A — the centre changes. The
+     phases sit on a pentagon in their Wheel arrangement (sector midpoints of
+     the Wheel: Wood upper-left, Fire at the top, Earth at the right pivot,
+     Metal and Water in the yin half); the generating cycle runs as arrows
+     around the pentagon and the controlling cycle as the star inside it.
+     Every rim item draws a spoke inward to its phase; an item a scheme keys
+     to a second phase draws a second, dashed spoke — the split IS the
+     disagreement. Clicking a centre phase isolates its whole family. */
+  function altPhasesFor(n){
+    const set = new Set();
+    RECORDS.forEach(r => {
+      if (!r.phase || r.phase === n.group) return;
+      let hit = false;
+      if (n.kind === "flavour") hit = (r.object === n.label);
+      else if (n.kind === "season") hit = (r.object === n.label || r.subject === n.label);
+      else if (n.kind === "class") hit = (r.subject === n.label);
+      else if (n.kind === "trigram") hit = (r.subject === n.label);
+      else if (n.kind === "Luoshu position") hit = (r.subject.indexOf("Luoshu " + n.id.slice(4) + " ·") === 0);
+      if (hit) set.add(r.phase);
+    });
+    return [...set];
+  }
+  function drawB(){
+    const kinds = new Set([...document.querySelectorAll("#flow-controls input[data-kind]:checked")].map(i=>i.dataset.kind));
+    const kindOn = k => k==="flavour" ? kinds.has("flavour") : k==="season" ? kinds.has("season") :
+      k==="class" ? kinds.has("class") : kinds.has("luoshu");
+    const rim = nodes.filter(n => n.kind !== "phase" && kindOn(n.kind));
+    const size = 640, outer = size/2 - 92, inner = outer - 22;
+    const labelEnd = n => outer + 38 + (n.kind==="trigram" ? 18 : 0) + estLabelW(n.label, 11);
+    const half = Math.max(size/2 + 60, Math.ceil(Math.max(...rim.map(labelEnd), outer + 60)) + 18);
+    const fig = document.getElementById("fig-flows"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-half)+" "+(-half)+" "+(half*2)+" "+(half*2), role:"img",
+      "aria-label":"Flows B: the five phases on a pentagon at the centre, with spokes from every rim item to its phase"}, fig);
+    arrowDefs(svg);
+    ribbonEls = []; arcEls = []; spokeEls = [];
+    flowSvg = svg; flowLabelEls = {}; flowPhaseEls = {};
+    /* rim arcs: equal spans in the Flows A order, small pads, wider at kind boundaries */
+    const spans = {};
+    { let totalPad = 0; rim.forEach((n,i)=>{ totalPad += 0.012 + (i>0 && rim[i-1].kind!==n.kind ? 0.03 : 0); });
+      const each = rim.length ? (2*Math.PI - totalPad)/rim.length : 0;
+      let a = 0;
+      rim.forEach((n,i)=>{ if (i>0) a += 0.012 + (rim[i-1].kind!==n.kind ? 0.03 : 0);
+        spans[n.id] = {a0:a, a1:a+each, mid:a+each/2}; a += each; }); }
+    /* centre pentagon, in the Wheel arrangement */
+    const RADB = d => d*Math.PI/180;
+    const PENT_DEG = {Wood:306, Fire:18, Earth:90, Metal:162, Water:234};
+    const PR = 106, phasePos = {}, phaseAng = {};
+    PHASES.forEach(p => { phaseAng[p] = RADB(PENT_DEG[p]); phasePos[p] = polar(PR, phaseAng[p]); });
+    /* spokes (under the arcs and the pentagon) */
+    function spokePath(mid, targetPhase){
+      const rp = polar(inner-2, mid);
+      let aV = phaseAng[targetPhase]; const aM = mid;
+      while (aV - aM > Math.PI) aV -= 2*Math.PI;
+      while (aM - aV > Math.PI) aV += 2*Math.PI;
+      const aC = aM*0.55 + aV*0.45, cp = polar(152, aC), ep = polar(PR-29, phaseAng[targetPhase]);
+      return "M"+rp[0]+","+rp[1]+" Q"+cp[0]+","+cp[1]+" "+ep[0]+","+ep[1];
+    }
+    rim.forEach(n => {
+      const sp = spans[n.id]; if (!sp) return;
+      const primary = FLOWS.filter(f => (f.s===n.id && f.t===n.group) || (f.t===n.id && f.s===n.group));
+      const recs = (primary.length ? primary : FLOWS.filter(f => f.s===n.id || f.t===n.id)).flatMap(f=>f.records);
+      const mkSpoke = (phase, dashed, op) => {
+        const p = el("path", {d:spokePath(sp.mid, phase), fill:"none", stroke:PCOL[phase],
+          "stroke-width": dashed ? 1.8 : 3, "stroke-opacity": op, class:"hov",
+          ...(dashed ? {"stroke-dasharray":"6 4"} : {})}, svg);
+        const entry = {path:p, nodeId:n.id, phase:phase, op:op};
+        spokeEls.push(entry);
+        p.addEventListener("click", ()=>{ insp.innerHTML = "<h3>"+esc(n.label)+" → "+esc(phase)+" "+PHASE_HZ[phase]+"</h3>"+
+          "<p class='sub'>"+(dashed ? "A second keying: a scheme also assigns this item to "+esc(phase)+", so it draws a split spoke — the disagreement, drawn rather than resolved."
+                                   : "This spoke is the item's phase keying: in Flows B every rim item hangs off its phase at the centre.")+"</p>"+recordsHTML(recs, false);
+          selection = null; flowPin = [n.id, phase]; capShow(svg, [flowCapsFor(n.id), flowCapsFor(phase)]); });
+        p.addEventListener("mouseover", ()=>{ if (!document.getElementById("flow-isolate").checked || !selection)
+          spokeEls.forEach(s=>s.path.setAttribute("stroke-opacity", s===entry ? 0.95 : 0.06));
+          capShow(svg, [flowCapsFor(n.id), flowCapsFor(phase)]); });
+        p.addEventListener("mouseout", ()=>{ applyIsolate(); refreshFlowCaps(); });
+        bindHover(p, ()=>hoverRecordsHTML(n.label+" \u2192 "+phase, recs,
+          "This spoke runs from <b>"+esc(n.label)+"</b> (a "+esc(n.kind)+") inward to its phase <b>"+esc(phase)+"</b> at the centre"+(dashed ? " — a second phase a scheme also keys it to; the split spoke is the disagreement" : "")+":"));
+        return p;
+      };
+      mkSpoke(n.group, false, 0.55);
+      altPhasesFor(n).forEach(ap => mkSpoke(ap, true, 0.5));
+    });
+    /* category shells, sized to enclose the rim labels, as in Flows A */
+    const KIND_SHELL_B = {"flavour":"Flavours · 五味", "season":"Seasons · 四時",
+      "class":"Creature classes · 五蟲", "trigram":"The eight trigrams · 八卦", "Luoshu position":"Luoshu positions · 洛書"};
+    Object.keys(KIND_SHELL_B).forEach(kind => {
+      const mem = rim.filter(n=>n.kind===kind);
+      if (!mem.length) return;
+      const a0 = Math.min(...mem.map(n=>spans[n.id].a0)), a1 = Math.max(...mem.map(n=>spans[n.id].a1));
+      const r1 = Math.max(...mem.map(labelEnd)) + 10;
+      const ids = new Set(mem.map(n=>n.id));
+      addShell(svg, outer+3, r1, a0-0.014, a1+0.014, KIND_SHELL_B[kind], "#8a6d3b",
+        ()=>{ spokeEls.forEach(s=>s.path.setAttribute("stroke-opacity", ids.has(s.nodeId)?0.95:0.05));
+              arcEls.forEach(a=>a.path.setAttribute("fill-opacity", ids.has(nodes[a.i].id) ? 1 : 0.3));
+              capShow(svg, mem.map(n=>flowCapsFor(n.id))); },
+        ()=>{ arcEls.forEach(a=>a.path.setAttribute("fill-opacity",0.92)); applyIsolate(); refreshFlowCaps(); }, true, outer+14);
+    });
+    /* rim arcs + labels */
+    rim.forEach(n => {
+      const sp = spans[n.id], i = idx[n.id];
+      const p = el("path", {d:annulus(inner, outer, sp.a0, sp.a1), fill:PCOL[n.group], "fill-opacity":0.92, class:"hov"}, svg);
+      p.addEventListener("click", ()=>nodeDetail(n));
+      p.addEventListener("mouseover", ()=>{ if(!selection || !document.getElementById("flow-isolate").checked)
+        spokeEls.forEach(s=>s.path.setAttribute("stroke-opacity", s.nodeId===n.id ? 0.95 : 0.07));
+        capShow(svg, [flowCapsFor(n.id), flowCapsFor(n.group), ...altPhasesFor(n).map(flowCapsFor)]); });
+      p.addEventListener("mouseout", ()=>{ applyIsolate(); refreshFlowCaps(); });
+      arcEls.push({path:p, i});
+      bindHover(p, ()=>{ const recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+        return hoverRecordsHTML(n.label, recs.slice(0,4),
+          "This arc is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" keyed to the phase <b>"+esc(n.group)+"</b>; its spoke runs inward to that phase at the centre."+(n.note ? " "+esc(n.note) : "")+(n.cls ? " Criterion: "+esc(n.cls.criterion)+"." : "")); });
+      const lt = labelTransform(sp.mid, outer+32);
+      if (n.kind==="trigram"){
+        const t3 = TRIGRAMS.find(x=>"tri:"+x.name===n.id), gw = 13;
+        const lg = el("g", {transform:lt.transform, class:"hov"}, svg);
+        const gg = glyphGroup(lg, t3.lines, gw, "var(--ink)");
+        gg.setAttribute("transform", "translate("+(lt.anchor==="start" ? lt.x+gw/2 : lt.x-gw/2)+",0)");
+        txt(lg, triLabel(t3), {class:"lbl hov", "text-anchor":lt.anchor, x: lt.anchor==="start" ? lt.x+gw+5 : lt.x-gw-5, dy:"0.35em"});
+        flowLabelEls[n.id] = lg;
+        lg.addEventListener("click", ()=>nodeDetail(n));
+        lg.addEventListener("mouseover", ()=>capShow(svg, [flowCapsFor(n.id), flowCapsFor(n.group)]));
+        lg.addEventListener("mouseout", refreshFlowCaps);
+        bindHover(lg, ()=>{ const recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+          return hoverRecordsHTML(triGlyphSVG(t3,15)+" "+esc(triLabel(t3)), recs.slice(0,4),
+            "This is the trigram <b>"+esc(triLabel(t3))+"</b> — "+esc(t3.nature)+", keyed to <b>"+esc(n.group)+"</b> at the centre. Legge: "+esc(t3.leggeShort)+".", true); });
+      } else {
+        const t = txt(svg, n.label, {transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em", class:"lbl hov"});
+        flowLabelEls[n.id] = t;
+        t.addEventListener("click", ()=>nodeDetail(n));
+        t.addEventListener("mouseover", ()=>capShow(svg, [flowCapsFor(n.id), flowCapsFor(n.group)]));
+        t.addEventListener("mouseout", refreshFlowCaps);
+        bindHover(t, ()=>{ const recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+          return hoverRecordsHTML(n.label, recs.slice(0,4), "This is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" keyed to the phase <b>"+esc(n.group)+"</b> at the centre."); });
+      }
+    });
+    /* the pentagon: generating arrows around it, controlling star inside it */
+    const pentPts = PHASES.map(p=>phasePos[p][0]+","+phasePos[p][1]).join(" ");
+    el("polygon", {points:pentPts, fill:"#8a6d3b", "fill-opacity":0.05, stroke:"none", "pointer-events":"none"}, svg);
+    if (kinds.has("ctl")) CTL.forEach(([a,b]) => {
+      el("path", {d:"M"+phasePos[a][0]+","+phasePos[a][1]+" L"+phasePos[b][0]+","+phasePos[b][1], fill:"none",
+        stroke:"#b03a2e", "stroke-width":1.8, "stroke-dasharray":"7 4", "stroke-opacity":0.8, "pointer-events":"none"}, svg);
+    });
+    if (kinds.has("gen")) GEN.forEach(([a,b]) => {
+      el("path", {d:"M"+phasePos[a][0]+","+phasePos[a][1]+" L"+phasePos[b][0]+","+phasePos[b][1], fill:"none",
+        stroke:"#2e7d46", "stroke-width":2.4, "stroke-opacity":0.85, "marker-end":"url(#arrG)", "pointer-events":"none"}, svg);
+    });
+    PHASES.forEach(p => {
+      const pos = phasePos[p], pn = {id:p, label:p+" "+PHASE_HZ[p], group:p, kind:"phase"};
+      const pg = el("g", {class:"hov"}, svg);
+      const c = el("circle", {cx:pos[0], cy:pos[1], r:27, fill:PCOL[p], "fill-opacity":0.95,
+        stroke:"var(--panel)", "stroke-width":2, class:"hov"}, pg);
+      const hz = txt(pg, PHASE_HZ[p], {x:pos[0], y:pos[1]-1, "text-anchor":"middle", "font-size":15, fill:"#fff", class:"hov"});
+      const nm = txt(pg, p, {x:pos[0], y:pos[1]+13, "text-anchor":"middle", "font-size":8.5, fill:"#fff", class:"hov"});
+      flowPhaseEls[p] = pg;
+      [c, hz, nm].forEach(e2 => {
+        e2.addEventListener("click", ()=>nodeDetail(pn));
+        e2.addEventListener("mouseover", ()=>{ if (!document.getElementById("flow-isolate").checked || !selection)
+          spokeEls.forEach(s=>s.path.setAttribute("stroke-opacity", s.phase===p ? 0.95 : 0.07));
+          capShow(svg, [flowCapsFor(p), ...rim.filter(n=>n.group===p).map(n=>flowCapsFor(n.id))]); });
+        e2.addEventListener("mouseout", ()=>{ applyIsolate(); refreshFlowCaps(); });
+        bindHover(e2, ()=>{ const fam = rim.filter(n=>n.group===p);
+          return "<h4><span class='swatch' style='background:"+PCOL[p]+"'></span>"+esc(p)+" "+PHASE_HZ[p]+" — at the centre</h4>"+
+            "<p>This centre node is the phase <b>"+esc(p)+"</b>, placed as in the Wheel. The generating cycle runs around the pentagon (green arrows) and the controlling cycle as the star inside it (dashed red). "+
+            fam.length+" rim items hang off it here: "+fam.map(n=>esc(n.label)).join(", ")+". Click to isolate the whole family.</p>"; });
+      });
+    });
+    /* the gauge at the very centre, inside the pentagon */
+    const rest = rim.length ? rim.reduce((a,n)=>a+yyOfNode(n).frac,0)/rim.length : 0.5;
+    centre1 = taijitu(svg, 20, rest);
+    if (selection) { const yy = yyOfNode(selection); centre1.update(yy.frac, yyZ(yy)); }
+    applyIsolate();
+    refreshFlowCaps();
+  }
+  function draw(){ if (flowsMode === "B") drawB(); else drawA(); }
+  document.querySelectorAll("#flow-mode button").forEach(b => b.addEventListener("click", ()=>{
+    flowsMode = b.getAttribute("data-fmode");
+    document.querySelectorAll("#flow-mode button").forEach(x=>x.setAttribute("aria-pressed", x===b ? "true" : "false"));
+    draw();
+  }));
   document.querySelectorAll("#flow-controls input").forEach(i=>i.addEventListener("change",draw));
   window.__spa.register("flows", draw);
 })();
@@ -963,13 +1664,18 @@ function arrowDefs(svg){
     return out;
   }
   let centre2 = null;
+  /* endpoint capsules: label registry + the click-pinned endpoint set */
+  let tabSvg = null, tabLabels = {}, tabPin = null;
+  function refreshTabCaps(){ if (!tabSvg) return;
+    if (tabPin) capShow(tabSvg, tabPin.map(k=>tabLabels[k])); else clearCaps(tabSvg); }
   function showCell(phase, family, schemes){
     const recs = cellRecords(schemes, phase, family);
-    if (centre2) centre2.update(PHASE_YY[phase].yang);
+    if (centre2) centre2.update(PHASE_YY[phase].yang, yyZ({frac:PHASE_YY[phase].yang, mv:phaseMove(phase)}));
     insp.innerHTML = "<h3>"+esc(phase)+" "+PHASE_HZ[phase]+" · "+esc(family)+"</h3>"+
-      "<p>Yin–yang ("+esc(phase)+"): "+yyBarHTML(PHASE_YY[phase].yang, "schematic · "+PHASE_YY[phase].note)+"</p>"+
+      "<p>Yin–yang ("+esc(phase)+"): "+yyBarHTML(PHASE_YY[phase].yang, "schematic · "+PHASE_YY[phase].note, phaseMove(phase))+"</p>"+
       "<p class='sub'>"+recs.length+" assertion"+(recs.length===1?"":"s")+" in this chord, from "+
       [...new Set(recs.map(r=>r.schemeLabel))].join(", ")+"</p>"+recordsHTML(recs, true);
+    tabPin = [phase, family]; refreshTabCaps();
   }
   function showPhase(phase, schemes, families){
     const recs = families.flatMap(f=>cellRecords(schemes, phase, f));
@@ -978,12 +1684,14 @@ function arrowDefs(svg){
     families.forEach(f => { const cr = cellRecords(schemes, phase, f);
       if (cr.length) h += "<p style='margin:10px 0 2px'><b>"+esc(f)+"</b></p>"+recordsHTML(cr, true); });
     insp.innerHTML = h;
+    tabPin = [phase, ...families.filter(f=>cellRecords(schemes, phase, f).length)]; refreshTabCaps();
   }
   function showFamily(family, schemes){
     let h = "<h3>"+esc(family)+"</h3><p class='sub'>All five phases, layered sources</p>";
     PHASES.forEach(p => { const cr = cellRecords(schemes, p, family);
       if (cr.length) h += "<p style='margin:10px 0 2px'><b>"+esc(p)+"</b></p>"+recordsHTML(cr, true); });
     insp.innerHTML = h;
+    tabPin = [family, ...PHASES.filter(p=>cellRecords(schemes, p, family).length)]; refreshTabCaps();
   }
   function draw(){
     const schemes = enabledSchemes();
@@ -997,13 +1705,19 @@ function arrowDefs(svg){
       const c = new Set(cellRecords(schemes,p,f).map(r=>r.scheme)).size;
       m[pi][5+fi] = c; m[5+fi][pi] = c; }));
     const size = 640, outer = size/2 - 96, inner = outer - 20;
-    const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+    /* Rim labels start at outer+26 and run radially outward; the two category
+       shells below are sized to enclose them, so the view encloses the shells. */
+    const nameOf = i => i<5 ? PHASES[i]+" "+PHASE_HZ[PHASES[i]] : families[i-5];
+    const labEndT = i => outer + 26 + estLabelW(nameOf(i), 11);
+    const half = Math.max(size/2 + 46, Math.ceil(Math.max(...names.map((_,i)=>labEndT(i))) + 18));
+    const svg = el("svg", {viewBox:(-half)+" "+(-half)+" "+(half*2)+" "+(half*2), role:"img",
       "aria-label":"Chord diagram of the layered correspondence tables"}, fig);
+    tabSvg = svg; tabLabels = {}; tabPin = null;
     const {groups, chords} = chordLayout(m, 0.03, false);
     const conf = conflicts(schemes, families);
     const confKey = new Set(conf.map(c=>c.phase+"|"+c.family));
     const col = i => i<5 ? PCOL[PHASES[i]] : "#9a8f76";
-    const ribbons = [];
+    const ribbons = [], ribbonIJ = [];
     chords.forEach(ch => {
       const pi = ch.i<5 ? ch.i : ch.j, fi = (ch.i<5 ? ch.j : ch.i) - 5;
       const phase = PHASES[pi], family = families[fi];
@@ -1012,12 +1726,26 @@ function arrowDefs(svg){
         ...(isConf ? {stroke:"#7a2d0e", "stroke-width":1.6, "stroke-dasharray":"4 2"} : {})}, svg);
       const title = el("title", {}, p); title.textContent = phase+" — "+family+(isConf ? " (sources differ)" : "");
       p.addEventListener("click", ()=>showCell(phase, family, schemes));
-      p.addEventListener("mouseover", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.88:0.06)));
-      p.addEventListener("mouseout", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)));
+      p.addEventListener("mouseover", ()=>{ ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.88:0.06));
+        capShow(svg, [tabLabels[phase], tabLabels[family]]); });
+      p.addEventListener("mouseout", ()=>{ ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)); refreshTabCaps(); });
       bindHover(p, ()=>{ const recs = cellRecords(schemes, phase, family);
         return hoverRecordsHTML(phase+" "+PHASE_HZ[phase]+" \u00b7 "+family, recs,
           "This chord connects the phase <b>"+esc(phase)+"</b> with the family <b>"+esc(family)+"</b> — "+esc(familyExplain(family))+". Each layer on adds its own value:"+(isConf ? " <span class='hc-warn'>The layers disagree in this cell (outlined).</span>" : "")); });
-      ribbons.push(p);
+      ribbons.push(p); ribbonIJ.push([ch.i, ch.j]);
+    });
+    /* Category shells: the five phases as one BIG ring-sector container, the
+       families as another — each extending radially past the ends of the rim
+       labels it encloses, its name along the arc in the inner strip. */
+    [[0, 4, "The five phases · 五行"], [5, names.length-1, "The correspondence families"]].forEach(([lo, hi, lab]) => {
+      const present = []; for (let k=lo;k<=hi;k++) if (groups[k].value>0) present.push(k);
+      if (!present.length) return;
+      const a0 = Math.min(...present.map(k=>groups[k].a0)), a1 = Math.max(...present.map(k=>groups[k].a1));
+      const r1 = Math.max(...present.map(labEndT)) + 10;
+      const inCat = k => k>=lo && k<=hi;
+      addShell(svg, outer+4, r1, a0-0.010, a1+0.010, lab, "#8a6d3b",
+        ()=>ribbons.forEach((r,k)=>r.setAttribute("fill-opacity", (inCat(ribbonIJ[k][0])||inCat(ribbonIJ[k][1]))?0.88:0.06)),
+        ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)), true, outer+11);
     });
     groups.forEach((g,i) => {
       if (g.value<=0) return;
@@ -1030,9 +1758,16 @@ function arrowDefs(svg){
             "This arc is the phase <b>"+esc(PHASES[i])+"</b>, one of the five phases (\u4e94\u884c). Its chords run to every family the layered sources assign to it. First families:")
         : hoverRecordsHTML(families[i-5], PHASES.flatMap(pp=>cellRecords(schemes, pp, families[i-5]).slice(0,1)),
             "This arc is the family <b>"+esc(families[i-5])+"</b> — "+esc(familyExplain(families[i-5]))+". One value per phase:"));
-      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
+      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+20);
       const t = txt(svg, i<5 ? PHASES[i]+" "+PHASE_HZ[PHASES[i]] : families[i-5],
         {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
+      tabLabels[nameOf(i)] = t;
+      const linkedCaps = ()=> i<5 ? [tabLabels[PHASES[i]], ...families.filter(f=>cellRecords(schemes, PHASES[i], f).length).map(f=>tabLabels[f])]
+                                   : [tabLabels[families[i-5]], ...PHASES.filter(pp=>cellRecords(schemes, pp, families[i-5]).length).map(pp=>tabLabels[pp])];
+      p.addEventListener("mouseover", ()=>capShow(svg, linkedCaps()));
+      p.addEventListener("mouseout", refreshTabCaps);
+      t.addEventListener("mouseover", ()=>capShow(svg, linkedCaps()));
+      t.addEventListener("mouseout", refreshTabCaps);
       t.addEventListener("click", act);
       bindHover(t, ()=> i<5
         ? "<h4>"+esc(PHASES[i])+" "+PHASE_HZ[PHASES[i]]+"</h4><p>This label is the phase <b>"+esc(PHASES[i])+"</b>. Click it for its whole row across the layered sources.</p>"
@@ -1059,11 +1794,11 @@ function arrowDefs(svg){
   let centre3 = null;
   function yyForKey(key, inf){
     if (!key) return null;
-    if (key.indexOf("phase:")===0){ const p = key.slice(6); return {frac:PHASE_YY[p].yang, kind:"schematic · "+PHASE_YY[p].note}; }
+    if (key.indexOf("phase:")===0){ const p = key.slice(6); return {frac:PHASE_YY[p].yang, kind:"schematic · "+PHASE_YY[p].note, mv:phaseMove(p)}; }
     if (key.indexOf("tri:")===0){ const t = TRIGRAMS.find(x=>x.name===key.slice(4));
-      return t ? {frac:triYang(t), kind:"exact — counted from the trigram's lines"} : null; }
+      return t ? {frac:triYang(t), kind:"exact — counted from the trigram's lines", mv:triMove(t)} : null; }
     const ph = inf && inf.records && inf.records[0] && inf.records[0].phase;
-    if (ph) return {frac:PHASE_YY[ph].yang, kind:"schematic — its phase "+ph+"'s value ("+PHASE_YY[ph].note+")"};
+    if (ph) return {frac:PHASE_YY[ph].yang, kind:"schematic — its phase "+ph+"'s value ("+PHASE_YY[ph].note+")", mv:phaseMove(ph)};
     return null;
   }
   const FULL = 680, R = FULL/2 - 118;
@@ -1102,16 +1837,16 @@ function arrowDefs(svg){
       groups = [
         {name:"trigrams", children: TRIGRAMS.map(t => { const key = "tri:"+t.name;
           const rec = RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name);
-          info.set(key, {title:t.sym+" "+t.hz+" "+t.name, sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
+          info.set(key, {title:triLabel(t), sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
             body:"Three lines, bottom to top: "+t.lines.map(l=>l?"yang ———":"yin — —").join(", ")+".",
             records:[rec]});
           edges.push({s:key, t:"phase:"+t.phase, phase:t.phase, records:[rec]});
-          return {name:t.hz+" "+t.name, key}; })},
+          return {name:triLabel(t), key}; })},
         {name:"luoshu positions", children: LUOSHU.map(p => { const key = "luo:"+p.n;
           const recs = RECORDS.filter(r=>r.scheme==="luoshu" && r.subject.indexOf("Luoshu "+p.n+" ·")===0);
           const tn = p.trigram ? TRIGRAMS.find(t=>t.name===p.trigram) : null;
           info.set(key, {title:"Luoshu "+p.n+" · "+p.dir, sub:"position "+p.n+" of nine · "+p.phase,
-            body: tn ? "The Later Heaven arrangement places "+tn.hz+" "+tn.name+" ("+tn.nature+") at this position. The Luoshu's rows, columns and diagonals each sum to 15."
+            body: tn ? "The Later Heaven arrangement places "+triLabel(tn)+" ("+tn.nature+") at this position. The Luoshu's rows, columns and diagonals each sum to 15."
                      : "The centre of the Luoshu. No trigram is placed here in the Later Heaven arrangement — the centre belongs to Earth, and the gap is left as it stands in the record. The Luoshu's rows, columns and diagonals each sum to 15.",
             records:recs});
           if (tn) edges.push({s:key, t:"tri:"+p.trigram, phase:p.phase, records:[recs.find(r=>r.relation.indexOf("trigram")===0)]});
@@ -1123,14 +1858,14 @@ function arrowDefs(svg){
         const rec = {scheme:"later-heaven", schemeLabel:"Later Heaven arrangement", subject:t.hz+" "+t.name,
           relation:"phase (Later Heaven)", object:t.phase+" "+PHASE_HZ[t.phase], tier:"arrangement",
           source:"Later Heaven (King Wen) arrangement — "+t.dir, phase:t.phase, family:"trigram", norm:t.phase.toLowerCase()};
-        info.set(key, {title:t.sym+" "+t.hz+" "+t.name, sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
+        info.set(key, {title:triLabel(t), sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
           body:"Three lines, bottom to top: "+t.lines.map(l=>l?"yang ———":"yin — —").join(", ")+". Paired above or below another trigram it composes a hexagram; the eight trigrams compose all sixty-four.",
           records:[rec]});
         edges.push({s:key, t:"phase:"+t.phase, phase:t.phase, records:[rec]});
-        return {name:t.hz+" "+t.name, key}; })}];
+        return {name:triLabel(t), key}; })}];
       OPPOSITES.forEach(([a,b]) => { const A=TRIGRAMS.find(t=>t.name===a), B=TRIGRAMS.find(t=>t.name===b);
-        const mk = (X,Y) => ({scheme:"king-wen", schemeLabel:"King Wen pairing", subject:X.hz+" "+X.name,
-          relation:"opposite in the King Wen pairing", object:Y.hz+" "+Y.name, tier:"arrangement",
+        const mk = (X,Y) => ({scheme:"king-wen", schemeLabel:"King Wen pairing", subject:triLabel(X),
+          relation:"opposite in the King Wen pairing", object:triLabel(Y), tier:"arrangement",
           source:"the paired-hexagram structure of the King Wen sequence", phase:null, family:"trigram", norm:""});
         edges.push({s:"tri:"+a, t:"tri:"+b, phase:null, opp:true, records:[mk(A,B)]});
         edges.push({s:"tri:"+b, t:"tri:"+a, phase:null, opp:true, records:[mk(B,A)]}); });
@@ -1163,17 +1898,48 @@ function arrowDefs(svg){
     return d + " L"+pts[pts.length-1][0]+","+pts[pts.length-1][1];
   }
   let currentSVG = null, currentByKey = new Map(), currentEdges = [];
+  /* endpoint capsules for the bundle views: leaf key -> label element, plus a
+     click-pinned endpoint pair for edges (which do not set the selection). */
+  let bundlePin = null, bundleLeafEls = {};
+  function refreshBundleCaps(){ const svg = currentSVG; if (!svg) return;
+    let keys = null;
+    if (selection){ keys = [selection];
+      currentEdges.forEach(e => { if (e.s===selection) keys.push(e.t); if (e.t===selection) keys.push(e.s); }); }
+    else if (bundlePin) keys = bundlePin;
+    if (keys) capShow(svg, keys.map(k=>bundleLeafEls[k])); else clearCaps(svg); }
   function draw(){
     if (mode==="hex"){ drawHex(); return; }
     const {root, edges, info} = buildTree();
     const leaves = layout(root);
     const byKey = new Map();
     (function walk(n){ if (n.key) byKey.set(n.key, n); (n.children||[]).forEach(walk); })(root);
+    /* Rim labels start at R+24 and run radially outward; the group shells
+       below are sized to enclose them, so the view encloses the shells. */
+    const leafFs = leaves.length>40 ? 9.5 : 11;
+    const halfB = Math.max(FULL/2 + 30, Math.ceil(R + 24 + Math.max(...leaves.map(l=>estLabelW(l.name, leafFs))) + 18));
     const fig = document.getElementById("fig-bundle"); fig.innerHTML = "";
-    const svg = el("svg", {viewBox:(-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL, role:"img",
+    const svg = el("svg", {viewBox:(-halfB)+" "+(-halfB)+" "+(halfB*2)+" "+(halfB*2), role:"img",
       "aria-label":"Hierarchical edge bundling diagram"}, fig);
-    currentSVG = svg; currentByKey = byKey;
+    svg.setAttribute("data-vb", svg.getAttribute("viewBox"));
+    currentSVG = svg; currentByKey = byKey; bundleLeafEls = {};
     arrowDefs(svg);
+    /* Category shells: one BIG ring-sector container per top-level group of
+       the hierarchy, extending radially past the ends of the group's rim
+       labels so they sit inside its outline — in the creature view, each
+       class's members (fish, snakes, humans, turtles…) inside that class's
+       container. The group's name runs along the arc in the inner strip. */
+    { const step = 2*Math.PI/Math.max(1,leaves.length);
+      root.children.forEach(gp => {
+        const gl = leaves.filter(l => { let nd = l; while (nd.parent && nd.parent!==root) nd = nd.parent; return nd===gp; });
+        if (!gl.length) return;
+        const keys = new Set(gl.map(l=>l.key));
+        const r1 = R + 24 + Math.max(...gl.map(l=>estLabelW(l.name, leafFs))) + 10;
+        addShell(svg, R+2, r1, gl[0].angle-step/2, gl[gl.length-1].angle+step/2,
+          gp.name==="phases" ? "The five phases · 五行" : gp.name, "#8a6d3b",
+          ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", (keys.has(x.s)||keys.has(x.t))?0.95:0.05); });
+            capShow(svg, gl.map(l=>bundleLeafEls[l.key])); },
+          ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); refreshBundleCaps(); }, true, R+9);
+      }); }
     const ungroup = document.getElementById("ungroup").checked;
     const isolate = document.getElementById("isolate").checked;
     const drawn = edges.filter(e => byKey.has(e.s) && byKey.has(e.t)).map(e => ({...e, sn:byKey.get(e.s), tn:byKey.get(e.t)}));
@@ -1200,32 +1966,39 @@ function arrowDefs(svg){
         "stroke-width":1.1, "pointer-events":"none"}, svg);
       e._path = p; e._hit = hit;
       const show = () => { insp.innerHTML = "<h3>"+esc(e.records[0].subject)+" → "+esc(e.records[0].object)+"</h3>"+
-        "<p class='sub'>The assertion behind this edge</p>"+recordsHTML(e.records, e.records[0].tier==="contested"); };
+        "<p class='sub'>The assertion behind this edge</p>"+recordsHTML(e.records, e.records[0].tier==="contested");
+        selection = null; bundlePin = [e.s, e.t]; capShow(svg, [bundleLeafEls[e.s], bundleLeafEls[e.t]]); };
       hit.addEventListener("click", show);
-      hit.addEventListener("mouseover", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x===e?0.95:0.05); }); });
-      hit.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); });
+      hit.addEventListener("mouseover", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x===e?0.95:0.05); });
+        capShow(svg, [bundleLeafEls[e.s], bundleLeafEls[e.t]]); });
+      hit.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); refreshBundleCaps(); });
       bindHover(hit, ()=>hoverRecordsHTML(e.records[0].subject+" \u2192 "+e.records[0].object, e.records,
         "This edge is one assertion, routed through the hierarchy:")); 
     });
     leaves.forEach(l => {
-      const lt = labelTransform(l.angle, l.radius);
+      const lt = labelTransform(l.angle, R+18);
       const t = txt(svg, l.name, {class: leaves.length>40 ? "lbl-sm hov":"lbl hov",
         transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.32em"});
+      bundleLeafEls[l.key] = t;
       if (selection === l.key) t.setAttribute("font-weight","700");
       t.addEventListener("mouseover", ()=>{ drawn.forEach(x=>{ if (x._path)
-        x._path.setAttribute("stroke-opacity", (x.s===l.key||x.t===l.key)?0.95:0.05); }); });
-      t.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); });
+        x._path.setAttribute("stroke-opacity", (x.s===l.key||x.t===l.key)?0.95:0.05); });
+        const linked = [l.key]; drawn.forEach(x=>{ if (x.s===l.key) linked.push(x.t); if (x.t===l.key) linked.push(x.s); });
+        capShow(svg, linked.map(k=>bundleLeafEls[k])); });
+      t.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); refreshBundleCaps(); });
       bindHover(t, ()=>{ const inf = info.get(l.key); if (!inf) return null;
-        return hoverRecordsHTML(inf.title, (inf.records||[]).slice(0,3),
-          "This name on the circle is <b>"+esc(inf.title)+"</b> — "+esc(inf.sub)+"."+(inf.body ? " "+esc(inf.body) : "")+" Its links state:"); });
+        const t3 = l.key && l.key.indexOf("tri:")===0 ? TRIGRAMS.find(x=>x.name===l.key.slice(4)) : null;
+        return hoverRecordsHTML((t3 ? triGlyphSVG(t3,15)+" " : "")+esc(inf.title), (inf.records||[]).slice(0,3),
+          "This name on the circle is <b>"+esc(inf.title)+"</b> — "+esc(inf.sub)+"."+(inf.body ? " "+esc(inf.body) : "")+(t3 ? " Legge: "+esc(t3.leggeShort)+"." : "")+" Its links state:", true); });
       t.addEventListener("click", ()=>{
-        selection = (selection === l.key) ? null : l.key;
+        selection = (selection === l.key) ? null : l.key; bundlePin = null;
         const inf = info.get(l.key);
         if (inf && selection){ const yy = yyForKey(l.key, inf);
-          if (yy && centre3) centre3.update(yy.frac);
-          insp.innerHTML = "<h3>"+esc(inf.title)+"</h3><p class='sub'>"+esc(inf.sub)+"</p>"+
-          (yy ? "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind)+"</p>" : "")+
-          (inf.body?"<p>"+esc(inf.body)+"</p>":"")+recordsHTML(inf.records||[], false); }
+          if (yy && centre3) centre3.update(yy.frac, yyZ(yy));
+          const t3 = l.key && l.key.indexOf("tri:")===0 ? TRIGRAMS.find(x=>x.name===l.key.slice(4)) : null;
+          insp.innerHTML = "<h3>"+(t3 ? triGlyphSVG(t3,20)+" " : "")+esc(inf.title)+"</h3><p class='sub'>"+esc(inf.sub)+"</p>"+
+          (yy ? "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind, yy.mv)+"</p>" : "")+
+          (inf.body?"<p>"+esc(inf.body)+"</p>":"")+(t3 ? triLeggeHTML(t3) : "")+recordsHTML(inf.records||[], false); }
         draw();
       });
     });
@@ -1234,6 +2007,7 @@ function arrowDefs(svg){
         cycleOverlays(svg, posMap, document.getElementById("bov-gen").checked, document.getElementById("bov-ctl").checked, R*0.55);
       const rest = leaves.reduce((a,l)=>{ const yy = yyForKey(l.key, info.get(l.key)); return a + (yy?yy.frac:0.5); }, 0)/Math.max(1,leaves.length);
       centre3 = taijitu(svg, 26, rest); }
+    refreshBundleCaps();
     if (!selection)
       insp.innerHTML = "<h3>Reading the bundle</h3><p class='sub'>Hover any name on the circle to trace its links. Click it for the assertion behind the link.</p>"+
         (mode==="trigrams" ? "<p class='src'>Orange links join each trigram to its King Wen opposite: 乾–坤， 坎–離， 震–巽， 艮–兌.</p>" : "")+
@@ -1260,46 +2034,59 @@ function arrowDefs(svg){
     st.lowEdges.forEach(({path})=> { path.setAttribute("stroke-opacity",0.30); path.setAttribute("stroke-width",1.1); });
     st.triEdges.forEach(({path})=> { path.setAttribute("stroke-opacity",0.45); path.setAttribute("stroke-width",1.4); });
     st.hexLabels.forEach(({t})=> t.removeAttribute("font-weight"));
-    if (!selection){ if (centre3) centre3.update(0.5); return; }
+    if (!selection){ if (centre3) centre3.update(0.5); clearCaps(currentSVG); return; }
     if (selection.indexOf("tri:")===0){ const nm = selection.slice(4), t = TRIGRAMS.find(x=>x.name===nm);
-      if (centre3) centre3.update(triYang(t));
+      if (centre3) centre3.update(triYang(t), yyZ({frac:triYang(t), mv:triMove(t)}));
       st.ties.forEach(({path,h})=> path.setAttribute("stroke-opacity", h.upper===nm?0.95:0.05));
       st.lowEdges.forEach(({path,h})=> { const on = h.lower===nm;
         path.setAttribute("stroke-opacity", on?0.95:0.06); if (on) path.setAttribute("stroke-width",2); });
       st.hexLabels.forEach(({t:lab,h})=> { if (h.upper===nm||h.lower===nm) lab.setAttribute("font-weight","700"); });
-      insp.innerHTML = "<h3>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h3><p class='sub'>"+esc(t.nature)+" · Later Heaven "+esc(t.dir)+" · phase "+esc(t.phase)+"</p>"+
-        "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang")+"</p>"+
-        "<p><b>As upper trigram</b> — its rim sector: "+KW_ORDER.map(l=>{ const h=hexByPair(nm,l); return h.n+" "+h.name; }).join(", ")+".</p>"+
-        "<p><b>As lower trigram</b> — by edge: "+KW_ORDER.map(u=>{ const h=hexByPair(u,nm); return h.n+" "+h.name; }).join(", ")+".</p>"+
+      insp.innerHTML = "<h3>"+triGlyphSVG(t, 20)+" "+esc(triLabel(t))+"</h3><p class='sub'>"+esc(t.nature)+" · Later Heaven "+esc(t.dir)+" · phase "+esc(t.phase)+"</p>"+
+        "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang", triMove(t))+"</p>"+
+        "<p><b>As upper trigram</b> — its rim sector: "+KW_ORDER.map(l=>hexNameShort(hexByPair(nm,l))).join(", ")+".</p>"+
+        "<p><b>As lower trigram</b> — by edge: "+KW_ORDER.map(u=>hexNameShort(hexByPair(u,nm))).join(", ")+".</p>"+
+        triLeggeHTML(t)+
         recordsHTML([RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)], false);
+      capShow(currentSVG, [st.triNodes[nm] && st.triNodes[nm].name, st.phaseNodes[t.phase] && st.phaseNodes[t.phase].c,
+        ...st.hexLabels.filter(({h})=>h.upper===nm).map(({t:lab})=>lab)]);
     } else if (selection.indexOf("hex:")===0){ const h = HEXAGRAMS.find(x=>x.n===+selection.slice(4));
       const U = TRIGRAMS.find(t=>t.name===h.upper), L = TRIGRAMS.find(t=>t.name===h.lower);
-      if (centre3) centre3.update(hexYang(h));
+      if (centre3) centre3.update(hexYang(h), yyZ({frac:hexYang(h), mv:hexMove(h)}));
       st.ties.forEach(({path,h:x})=> path.setAttribute("stroke-opacity", x===h?0.95:0.05));
       st.lowEdges.forEach(({path,h:x})=> { path.setAttribute("stroke-opacity", x===h?0.95:0.06);
         if (x===h) path.setAttribute("stroke-width",2); });
       st.triEdges.forEach(({path,tri})=> path.setAttribute("stroke-opacity", (tri===h.upper||tri===h.lower)?0.8:0.08));
-      insp.innerHTML = "<h3>"+h.sym+" Hexagram "+h.n+" · "+esc(h.name)+"</h3>"+
-        "<p class='sub'>"+esc(U.hz)+" "+esc(U.name)+" over "+esc(L.hz)+" "+esc(L.name)+"</p>"+
-        "<div>"+glyphSVG(h, true)+"</div>"+
-        "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang")+"</p>"+
-        "<p>The derivation: upper trigram "+esc(U.hz)+" "+esc(U.name)+" ("+esc(U.nature)+") set above lower trigram "+
-        esc(L.hz)+" "+esc(L.name)+" ("+esc(L.nature)+") gives hexagram "+h.n+", "+esc(h.name)+", in the King Wen sequence.</p>"+
+      insp.innerHTML = "<h3>"+hexGlyphSVG(h, 17, "joined", false)+" "+esc(hexTitle(h))+"</h3>"+
+        "<p class='sub'>"+esc(triLabel(U))+" over "+esc(triLabel(L))+"</p>"+
+        glyphBoxHTML(h)+
+        "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang", hexMove(h))+"</p>"+
+        "<p>The derivation: built from the bottom up \u2014 lower trigram "+esc(triLabel(L))+" ("+esc(L.nature)+") forms the bottom three lines (1\u20133), and upper trigram "+
+        esc(triLabel(U))+" ("+esc(U.nature)+") set above it completes the top three (4\u20136): hexagram "+h.n+", "+esc(h.name)+" "+esc(h.py)+" — "+esc(h.en)+", in the King Wen sequence.</p>"+
+        hexLeggeHTML(h)+
         recordsHTML([hexRecord(h)], false);
+      wireGlyphBox(insp, h);
+      capShow(currentSVG, [st.hexLabels.find(({h:x})=>x===h) && st.hexLabels.find(({h:x})=>x===h).t,
+        st.triNodes[h.upper] && st.triNodes[h.upper].name, st.triNodes[h.lower] && st.triNodes[h.lower].name]);
     } else if (selection.indexOf("phase:")===0){ const p = selection.slice(6);
-      if (centre3) centre3.update(PHASE_YY[p].yang);
+      if (centre3) centre3.update(PHASE_YY[p].yang, yyZ({frac:PHASE_YY[p].yang, mv:phaseMove(p)}));
       const tris = TRIGRAMS.filter(t=>t.phase===p);
       st.triEdges.forEach(({path,phase})=> path.setAttribute("stroke-opacity", phase===p?0.9:0.08));
       insp.innerHTML = "<h3><span class='swatch' style='background:"+PCOL[p]+"'></span>"+esc(p)+" "+PHASE_HZ[p]+"</h3>"+
-        "<p>Yin–yang: "+yyBarHTML(PHASE_YY[p].yang, "schematic · "+PHASE_YY[p].note)+"</p>"+
-        "<p class='sub'>Trigrams of this phase in the Later Heaven arrangement: "+tris.map(t=>t.hz+" "+t.name+" ("+t.dir+")").join(", ")+".</p>"+
+        "<p>Yin–yang: "+yyBarHTML(PHASE_YY[p].yang, "schematic · "+PHASE_YY[p].note, phaseMove(p))+"</p>"+
+        "<p class='sub'>Trigrams of this phase in the Later Heaven arrangement: "+tris.map(t=>triLabel(t)+" ("+t.dir+")").join(", ")+".</p>"+
         recordsHTML(tris.map(t=>RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)), false);
+      capShow(currentSVG, [st.phaseNodes[p] && st.phaseNodes[p].c,
+        ...tris.map(t=>st.triNodes[t.name] && st.triNodes[t.name].name)]);
     }
   }
   function drawHex(){
+    /* Rim labels start at R+28 and run radially outward; the sector shells
+       below are sized to enclose them, so the view encloses the shells. */
+    const halfH = Math.max(FULL/2 + 110, Math.ceil(R + 28 + Math.max(...HEXAGRAMS.map(h=>estLabelW(hexNameShort(h), 9.5))) + 20));
     const fig = document.getElementById("fig-bundle"); fig.innerHTML = "";
-    const svg = el("svg", {viewBox:(-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL, role:"img",
+    const svg = el("svg", {viewBox:(-halfH)+" "+(-halfH)+" "+(halfH*2)+" "+(halfH*2), role:"img",
       "aria-label":"Hexagrams in rings: phases at the core, trigrams in the middle ring, hexagrams on the rim"}, fig);
+    svg.setAttribute("data-vb", svg.getAttribute("viewBox"));
     currentSVG = svg; arrowDefs(svg);
     const rP = 62, rT = 136, rH = R;
     hexPts = new Map();
@@ -1310,6 +2097,21 @@ function arrowDefs(svg){
       const p1 = polar(rT-26, a), p2 = polar(rH+16, a);
       el("path", {d:"M"+p1[0]+","+p1[1]+" L"+p2[0]+","+p2[1], stroke:"var(--line)", "stroke-width":1}, svg); });
     const store = {hexGlyphs:[], ties:[], lowEdges:[], triEdges:[], triNodes:{}, hexLabels:[], phaseNodes:{}};
+    /* Category shells: one BIG ring-sector container per rim sector — the
+       eight hexagrams sharing an upper trigram — extending radially past
+       the ends of their rim labels so the labels sit inside its outline,
+       with the trigram's name along the arc in the container's inner strip. */
+    KW_ORDER.forEach(u => { const U = TRIGRAMS.find(t=>t.name===u);
+      const r1 = Math.max(...KW_ORDER.map(l => rH + 28 + estLabelW(hexNameShort(hexByPair(u, l)), 9.5))) + 10;
+      addShell(svg, rH+2, r1, triAngle[u]-Math.PI/8, triAngle[u]+Math.PI/8, triLabel(U), PCOL[U.phase],
+        ()=>{ if (selection) return;
+          store.ties.forEach(({path,h})=> path.setAttribute("stroke-opacity", h.upper===u?0.95:0.04));
+          store.lowEdges.forEach(({path,h})=> path.setAttribute("stroke-opacity", h.upper===u?0.9:0.05));
+          store.hexLabels.forEach(({t,h})=> { if (h.upper===u) t.setAttribute("font-weight","700"); });
+          capShow(svg, [store.triNodes[u] && store.triNodes[u].name,
+            ...store.hexLabels.filter(({h})=>h.upper===u).map(({t})=>t)]); },
+        ()=>{ store.hexLabels.forEach(({t})=> t.removeAttribute("font-weight")); applyHexSelection(); }, true, rH+11);
+    });
     TRIGRAMS.forEach(t => { const a = triAngle[t.name], b = phaseAngle[t.phase];
       const A = polar(rT, a), B = polar(rP, b); hexPts.set("tri:"+t.name, A);
       const mid = polar((rT+rP)/2, (a+b)/2);
@@ -1317,25 +2119,33 @@ function arrowDefs(svg){
         stroke:PCOL[t.phase], "stroke-opacity":0.45, "stroke-width":1.4, class:"hov"}, svg);
       store.triEdges.push({path:p, tri:t.name, phase:t.phase});
       p.addEventListener("click", ()=> selectHex("tri:"+t.name));
-      bindHover(p, ()=>hoverRecordsHTML(t.hz+" "+t.name+" \u2192 "+t.phase, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
-        "This line ties the trigram in the middle ring to its phase at the core:"));
+      p.addEventListener("mouseover", ()=>capShow(svg, [store.triNodes[t.name] && store.triNodes[t.name].name,
+        store.phaseNodes[t.phase] && store.phaseNodes[t.phase].c]));
+      p.addEventListener("mouseout", ()=>{ if (selection) applyHexSelection(); else clearCaps(svg); });
+      bindHover(p, ()=>hoverRecordsHTML(triGlyphSVG(t,15)+" "+esc(triLabel(t))+" \u2192 "+esc(t.phase), [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+        "This line ties the trigram in the middle ring to its phase at the core:", true));
     });
     KW_ORDER.forEach(u => { const U = TRIGRAMS.find(t=>t.name===u);
       KW_ORDER.map(l => hexByPair(u,l)).forEach((h, k) => {
         const a = triAngle[u] - Math.PI/8 + (k+0.5)*(Math.PI/4)/8;
         hexPts.set("hex:"+h.n, polar(rH, a));
         const base = polar(rH-24, a), up = polar(rT+18, triAngle[u]);
-        const tie = el("path", {d:"M"+base[0]+","+base[1]+" L"+up[0]+","+up[1],
+        const tie = el("path", {d:"M"+up[0]+","+up[1]+" L"+base[0]+","+base[1],
           stroke:PCOL[U.phase], "stroke-opacity":0.18, "stroke-width":1.2}, svg);
         store.ties.push({path:tie, h});
         const lp = polar(rT, triAngle[h.lower]);
         const mid = polar((rH+rT)/2 + 10, (a+triAngle[h.lower])/2);
-        const le = el("path", {d:"M"+base[0]+","+base[1]+" Q"+mid[0]+","+mid[1]+" "+lp[0]+","+lp[1],
+        const le = el("path", {d:"M"+lp[0]+","+lp[1]+" Q"+mid[0]+","+mid[1]+" "+base[0]+","+base[1],
           fill:"none", stroke:"#8a6d3b", "stroke-opacity":0.30, "stroke-width":1.1, class:"hov"}, svg);
         store.lowEdges.push({path:le, h});
         le.addEventListener("click", ()=> selectHex("hex:"+h.n));
+        const hexCaps = ()=> [store.hexLabels.find(x=>x.h===h) && store.hexLabels.find(x=>x.h===h).t,
+          store.triNodes[h.upper] && store.triNodes[h.upper].name, store.triNodes[h.lower] && store.triNodes[h.lower].name];
+        const hexCapsOut = ()=>{ if (selection) applyHexSelection(); else clearCaps(svg); };
+        le.addEventListener("mouseover", ()=>capShow(svg, hexCaps()));
+        le.addEventListener("mouseout", hexCapsOut);
         bindHover(le, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
-          return "<h4>Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This edge runs from hexagram "+h.n+" on the rim to its <b>lower trigram</b>, <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b>. The hexagram is composed of upper trigram "+esc(U2.hz)+" "+esc(U2.name)+" set above lower trigram "+esc(L2.hz)+" "+esc(L2.name)+".</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
+          return "<h4>"+esc(hexTitle(h))+"</h4><p>This edge runs from the <b>lower trigram</b>, <b>"+esc(triLabel(L2))+"</b>, into hexagram "+h.n+" on the rim. The lower trigram is the hexagram's foundation \u2014 its bottom three lines, laid first, since a hexagram is built from the bottom up \u2014 with upper trigram "+esc(triLabel(U2))+" set above it as the top three lines.</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
         const gU = el("g", {}, svg), gL = el("g", {}, svg);
         const drawLines = (grp, three, topIdx) => { three.forEach((v, j) => {
           const rr = rH - 2 - (topIdx+j)*3.4, half = 0.030;
@@ -1346,14 +2156,18 @@ function arrowDefs(svg){
         drawLines(gU, h.linesTop.slice(0,3), 0);
         drawLines(gL, h.linesTop.slice(3), 3);
         [gU,gL].forEach(g=> { g.addEventListener("click", ()=> selectHex("hex:"+h.n));
+          g.addEventListener("mouseover", ()=>capShow(svg, hexCaps()));
+          g.addEventListener("mouseout", hexCapsOut);
           bindHover(g, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
-            return "<h4>"+h.sym+" Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>These six lines on the rim are hexagram "+h.n+": the top three lines are the upper trigram <b>"+esc(U2.hz)+" "+esc(U2.name)+"</b> ("+esc(U2.nature)+"), the bottom three the lower trigram <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b> ("+esc(L2.nature)+"). A solid line is yang, a broken line is yin \u2014 "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang.</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 King Wen sequence, no. "+h.n+"</p>"; }); });
+            return "<h4>"+hexGlyphSVG(h, 15, "joined", false)+" "+esc(hexTitle(h))+"</h4><p>These six lines on the rim are hexagram "+h.n+": the top three lines are the upper trigram <b>"+esc(triLabel(U2))+"</b> ("+esc(U2.nature)+"), the bottom three the lower trigram <b>"+esc(triLabel(L2))+"</b> ("+esc(L2.nature)+"). A solid line is yang, a broken line is yin \u2014 "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang.</p><p class='hc-meta'>Legge's Judgment ("+esc(h.lg)+"): \u201c"+esc(h.jdg)+"\u201d</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 King Wen sequence, no. "+h.n+"</p>"; }); });
         store.hexGlyphs.push({h, gU, gL, a});
-        const lt = labelTransform(a, rH+4);
-        const lab = txt(svg, h.n+" "+h.name, {class:"lbl-sm hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.32em"});
+        const lt = labelTransform(a, rH+22);
+        const lab = txt(svg, h.n+" "+h.name+" "+h.py+" · "+h.en, {class:"lbl-sm hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.32em"});
         lab.addEventListener("click", ()=> selectHex("hex:"+h.n));
+        lab.addEventListener("mouseover", ()=>capShow(svg, hexCaps()));
+        lab.addEventListener("mouseout", hexCapsOut);
         bindHover(lab, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
-          return "<h4>Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This rim label is hexagram "+h.n+", composed of "+esc(U2.hz)+" "+esc(U2.name)+" above "+esc(L2.hz)+" "+esc(L2.name)+". It sits in its upper trigram's sector.</p>"; });
+          return "<h4>"+esc(hexTitle(h))+"</h4><p>This rim label is hexagram "+h.n+" ("+esc(h.en)+"), composed of "+esc(triLabel(U2))+" above "+esc(triLabel(L2))+". It sits in its upper trigram's sector.</p>"; });
         store.hexLabels.push({t:lab, h});
       });
     });
@@ -1362,21 +2176,30 @@ function arrowDefs(svg){
       el("circle", {cx:pos[0], cy:pos[1], r:14, fill:"var(--panel)", stroke:"#cfc6ae", "stroke-width":3}, svg);
       el("circle", {cx:pos[0], cy:pos[1], r:14, fill:"none", stroke:"#26221a", "stroke-width":3,
         "stroke-dasharray":(frac*C)+" "+C, transform:"rotate(-90 "+pos[0]+" "+pos[1]+")"}, svg);
-      const s = txt(svg, t.sym, {x:pos[0], y:pos[1]+5, "text-anchor":"middle", "font-size":15, class:"hov"});
+      const s = glyphGroup(svg, t.lines, 15, "var(--ink)");
+      s.setAttribute("transform", "translate("+pos[0]+","+pos[1]+")");
       s.addEventListener("click", ()=> selectHex("tri:"+t.name));
-      bindHover(s, ()=>hoverRecordsHTML(t.sym+" "+t.hz+" "+t.name, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
-        "This middle-ring node is the trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"), placed "+esc(t.dir)+" in the Later Heaven arrangement. Its three lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+" \u2014 "+t.lines.reduce((a,b)=>a+b,0)+" of 3 yang. As an upper or lower trigram it composes 16 of the 64 hexagrams."));
+      s.addEventListener("mouseover", ()=>capShow(svg, [store.triNodes[t.name] && store.triNodes[t.name].name, s,
+        store.phaseNodes[t.phase] && store.phaseNodes[t.phase].c]));
+      s.addEventListener("mouseout", ()=>{ if (selection) applyHexSelection(); else clearCaps(svg); });
+      bindHover(s, ()=>hoverRecordsHTML(triGlyphSVG(t,15)+" "+esc(triLabel(t)), [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+        "This middle-ring node is the trigram <b>"+esc(triLabel(t))+"</b> ("+esc(t.nature)+"), placed "+esc(t.dir)+" in the Later Heaven arrangement. Its three lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+" \u2014 "+t.lines.reduce((a,b)=>a+b,0)+" of 3 yang. Legge: "+esc(t.leggeShort)+". As an upper or lower trigram it composes 16 of the 64 hexagrams.", true));
       const lt = labelTransform(a, rT+16);
-      const nm = txt(svg, t.hz+" "+t.name, {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
+      const nm = txt(svg, triLabel(t), {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
       nm.addEventListener("click", ()=> selectHex("tri:"+t.name));
-      bindHover(nm, ()=> "<h4>"+esc(t.hz)+" "+esc(t.name)+"</h4><p>The trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+") \u2014 phase "+esc(t.phase)+", Later Heaven "+esc(t.dir)+". Click for the hexagrams it composes.</p>");
+      nm.addEventListener("mouseover", ()=>capShow(svg, [nm, store.phaseNodes[t.phase] && store.phaseNodes[t.phase].c]));
+      nm.addEventListener("mouseout", ()=>{ if (selection) applyHexSelection(); else clearCaps(svg); });
+      bindHover(nm, ()=> "<h4>"+triGlyphSVG(t,15)+" "+esc(triLabel(t))+"</h4><p>The trigram <b>"+esc(triLabel(t))+"</b> ("+esc(t.nature)+") \u2014 phase "+esc(t.phase)+", Later Heaven "+esc(t.dir)+". Click for the hexagrams it composes.</p>");
       store.triNodes[t.name] = {sym:s, name:nm};
     });
     PHASES.forEach(p => { const pos = polar(rP, phaseAngle[p]); hexPts.set("phase:"+p, pos);
       const c = el("circle", {cx:pos[0], cy:pos[1], r:13, fill:PCOL[p], "fill-opacity":0.92, class:"hov"}, svg);
       const s = txt(svg, PHASE_HZ[p], {x:pos[0], y:pos[1]+4, "text-anchor":"middle", "font-size":12, fill:"#fff", class:"hov"});
       [c,s].forEach(e2=> { e2.addEventListener("click", ()=> selectHex("phase:"+p));
-        bindHover(e2, ()=> "<h4>"+esc(p)+" "+PHASE_HZ[p]+"</h4><p>This core node is the phase <b>"+esc(p)+"</b> \u2014 yin\u2013yang "+Math.round(PHASE_YY[p].yang*100)+"% yang (schematic \u00b7 "+esc(PHASE_YY[p].note)+"). Trigrams of this phase in the Later Heaven arrangement: "+TRIGRAMS.filter(t=>t.phase===p).map(t=>t.hz+" "+t.name).join(", ")+".</p>"); });
+        e2.addEventListener("mouseover", ()=>capShow(svg, [c,
+          ...TRIGRAMS.filter(tt=>tt.phase===p).map(tt=>store.triNodes[tt.name] && store.triNodes[tt.name].name)]));
+        e2.addEventListener("mouseout", ()=>{ if (selection) applyHexSelection(); else clearCaps(svg); });
+        bindHover(e2, ()=> "<h4>"+esc(p)+" "+PHASE_HZ[p]+"</h4><p>This core node is the phase <b>"+esc(p)+"</b> \u2014 yin\u2013yang "+Math.round(PHASE_YY[p].yang*100)+"% yang \u00b7 "+esc(phaseMove(p).w)+" (schematic \u00b7 "+esc(PHASE_YY[p].note)+"). Trigrams of this phase in the Later Heaven arrangement: "+TRIGRAMS.filter(t=>t.phase===p).map(t=>triLabel(t)).join(", ")+".</p>"); });
       store.phaseNodes[p] = {c, s};
     });
     const posMap = {}; PHASES.forEach(p=> posMap[p] = polar(rP, phaseAngle[p]));
@@ -1385,7 +2208,7 @@ function arrowDefs(svg){
     hexStore = store;
     setHexSplit(hexSplit);
     if (selection) applyHexSelection();
-    else insp.innerHTML = "<h3>The sixty-four, in rings</h3><p class='sub'>Core: the five phases. Middle ring: the eight trigrams — the dark arc on each trigram's ring is its yang proportion, exact from its lines. Rim: the sixty-four hexagrams inside their upper trigram's sector, each with a tie to that trigram and one edge to its lower trigram. Click a trigram, a hexagram or a phase.</p><p>Yin–yang (whole rim): "+yyBarHTML(0.5, "exact — 192 of the 384 lines are yang")+"</p>";
+    else insp.innerHTML = "<h3>The sixty-four, in rings</h3><p class='sub'>Core: the five phases. Middle ring: the eight trigrams — the dark arc on each trigram's ring is its yang proportion, exact from its lines. Rim: the sixty-four hexagrams inside their upper trigram's sector, each with a tie to that trigram and one edge to its lower trigram. Click a trigram, a hexagram or a phase.</p><p>Yin–yang (whole rim): "+yyBarHTML(0.5, "exact — 192 of the 384 lines are yang", {w:"balanced", im:0})+"</p>";
   }
   document.querySelectorAll("#hex-state button").forEach(b=> b.addEventListener("click", ()=>{
     document.querySelectorAll("#hex-state button").forEach(x=>x.setAttribute("aria-pressed","false"));
@@ -1427,7 +2250,7 @@ function arrowDefs(svg){
     currentSVG.setAttribute("viewBox", x0+" "+y0+" "+w+" "+h);
   });
   document.getElementById("zoom-reset").addEventListener("click", ()=>{
-    if (currentSVG) currentSVG.setAttribute("viewBox", (-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL);
+    if (currentSVG) currentSVG.setAttribute("viewBox", currentSVG.getAttribute("data-vb") || ((-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL));
   });
   window.__spa.register("bundle", draw);
 })();
@@ -1438,58 +2261,101 @@ function arrowDefs(svg){
   const insp = document.getElementById("insp-comp");
   const names = KW_ORDER.slice(); const idx = {}; names.forEach((n,i)=>idx[n]=i);
   const m = names.map(()=>names.map(()=>0));
-  HEXAGRAMS.forEach(h=> m[idx[h.upper]][idx[h.lower]] += 1);
+  /* Direction follows the reading of the figure: a hexagram is built from the
+     bottom up, so each ribbon runs FROM the lower trigram (its source end, the
+     foundation, lines 1–3) TO the upper trigram (its target end, where the
+     taper tip lands, lines 4–6). matrix[lower][upper]. */
+  HEXAGRAMS.forEach(h=> m[idx[h.lower]][idx[h.upper]] += 1);
   const size = 600, outer = size/2 - 96, inner = outer - 20;
+  /* Rim labels (glyph + name) start at outer+26 and their text runs radially
+     outward from outer+44; the phase shells below are sized to enclose them,
+     so the view encloses the shells. */
+  const labEndC = t => outer + 44 + estLabelW(triLabel(t), 11);
+  const half = Math.max(size/2 + 46, Math.ceil(Math.max(...TRIGRAMS.map(labEndC)) + 18));
   const fig = document.getElementById("fig-comp"); fig.innerHTML = "";
-  const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+  const svg = el("svg", {viewBox:(-half)+" "+(-half)+" "+(half*2)+" "+(half*2), role:"img",
     "aria-label":"Directed chord of the trigram composition: one ribbon per hexagram"}, fig);
   const {groups, chords} = chordLayout(m, 0.04, true);
-  const ribbons = [];
+  const ribbons = [], ribbonH = [], arcPaths = [];
   let centre4 = null;
+  /* endpoint capsules: trigram name -> glyph+label group; a click pins a set */
+  const compLabels = {}; let compPin = null;
+  function refreshCompCaps(){ if (compPin) capShow(svg, compPin.map(nm=>compLabels[nm])); else clearCaps(svg); }
   function triDetail(t){
-    if (centre4) centre4.update(triYang(t));
-    insp.innerHTML = "<h3>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h3><p class='sub'>"+esc(t.nature)+" · phase "+esc(t.phase)+"</p>"+
-      "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang")+"</p>"+
-      "<p><b>As upper</b>: "+KW_ORDER.map(l=>{ const h=hexByPair(t.name,l); return h.n+" "+h.name; }).join(", ")+".</p>"+
-      "<p><b>As lower</b>: "+KW_ORDER.map(u=>{ const h=hexByPair(u,t.name); return h.n+" "+h.name; }).join(", ")+".</p>";
+    if (centre4) centre4.update(triYang(t), yyZ({frac:triYang(t), mv:triMove(t)}));
+    insp.innerHTML = "<h3>"+triGlyphSVG(t, 20)+" "+esc(triLabel(t))+"</h3><p class='sub'>"+esc(t.nature)+" · phase "+esc(t.phase)+"</p>"+
+      "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang", triMove(t))+"</p>"+
+      "<p><b>As upper</b>: "+KW_ORDER.map(l=>hexNameShort(hexByPair(t.name,l))).join(", ")+".</p>"+
+      "<p><b>As lower</b>: "+KW_ORDER.map(u=>hexNameShort(hexByPair(u,t.name))).join(", ")+".</p>"+
+      triLeggeHTML(t);
+    compPin = [t.name, ...names.filter(nm=>nm!==t.name)]; refreshCompCaps();
   }
   function hexDetail(h){
     const U = TRIGRAMS.find(t=>t.name===h.upper), L = TRIGRAMS.find(t=>t.name===h.lower);
-    if (centre4) centre4.update(hexYang(h));
-    insp.innerHTML = "<h3>"+h.sym+" Hexagram "+h.n+" · "+esc(h.name)+"</h3>"+
-      "<p class='sub'>"+esc(U.hz)+" "+esc(U.name)+" over "+esc(L.hz)+" "+esc(L.name)+"</p>"+
-      "<div>"+glyphSVG(h, true)+"</div>"+
-      "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang")+"</p>"+
+    if (centre4) centre4.update(hexYang(h), yyZ({frac:hexYang(h), mv:hexMove(h)}));
+    insp.innerHTML = "<h3>"+hexGlyphSVG(h, 17, "joined", false)+" "+esc(hexTitle(h))+"</h3>"+
+      "<p class='sub'>"+esc(triLabel(U))+" over "+esc(triLabel(L))+"</p>"+
+      glyphBoxHTML(h)+
+      "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang", hexMove(h))+"</p>"+
+      hexLeggeHTML(h)+
       recordsHTML([hexRecord(h)], false);
+    wireGlyphBox(insp, h);
+    compPin = [h.lower, h.upper]; refreshCompCaps();
   }
   chords.forEach(ch => {
-    const h = hexByPair(names[ch.i], names[ch.j]);
+    const h = hexByPair(names[ch.j], names[ch.i]); /* ch.i = lower (source), ch.j = upper (target) */
     const target = TRIGRAMS.find(t=>t.name===names[ch.j]);
     const p = el("path", {d:ribbonPath(inner-1, ch.s, ch.t), fill:PCOL[target.phase], "fill-opacity":0.55, class:"hov"}, svg);
-    const title = el("title", {}, p); title.textContent = "Hexagram "+h.n+" "+h.name+": "+names[ch.i]+" over "+names[ch.j];
+    const title = el("title", {}, p); title.textContent = "Hexagram "+h.n+" "+h.name+": "+names[ch.j]+" over "+names[ch.i];
     p.addEventListener("click", ()=>hexDetail(h));
-    p.addEventListener("mouseover", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.9:0.07)));
-    p.addEventListener("mouseout", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)));
+    p.addEventListener("mouseover", ()=>{ ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.9:0.07));
+      capShow(svg, [compLabels[h.lower], compLabels[h.upper]]); });
+    p.addEventListener("mouseout", ()=>{ ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)); refreshCompCaps(); });
     bindHover(p, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
-      return "<h4>"+h.sym+" Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This ribbon <b>is</b> hexagram "+h.n+": it runs from the upper trigram <b>"+esc(U2.hz)+" "+esc(U2.name)+"</b> ("+esc(U2.nature)+") to the lower trigram <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b> ("+esc(L2.nature)+") \u2014 a hexagram is one trigram set above another, and there is exactly one for every ordered pair. "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang (solid); the rest are yin (broken).</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
+      return "<h4>"+hexGlyphSVG(h, 15, "joined", false)+" "+esc(hexTitle(h))+"</h4><p>This ribbon <b>is</b> hexagram "+h.n+": it runs from the lower trigram <b>"+esc(triLabel(L2))+"</b> ("+esc(L2.nature)+") \u2014 its wide end, at the foundation \u2014 up to the upper trigram <b>"+esc(triLabel(U2))+"</b> ("+esc(U2.nature)+"), where its point lands. That is the order the figure itself is built and read in, from the bottom up: the lower trigram forms the bottom three lines (lines 1\u20133) and the upper trigram, set above it, completes the top three (lines 4\u20136) \u2014 with exactly one hexagram for every ordered pair. "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang (solid); the rest are yin (broken).</p><p class='hc-meta'>Legge's Judgment ("+esc(h.lg)+"): \u201c"+esc(h.jdg)+"\u201d</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
     if (ch.t.a1 - ch.t.a0 > 0.012){
       const mid = (ch.t.a0+ch.t.a1)/2, tip = polar(inner+2, mid), b1 = polar(inner-13, ch.t.a0), b2 = polar(inner-13, ch.t.a1);
       el("path", {d:"M"+tip[0]+","+tip[1]+" L"+b1[0]+","+b1[1]+" L"+b2[0]+","+b2[1]+" Z",
         fill:PCOL[target.phase], "fill-opacity":0.85, "pointer-events":"none"}, svg);
     }
-    ribbons.push(p);
+    ribbons.push(p); ribbonH.push(h);
   });
+  /* Category shells: the rim order groups the trigrams by phase (Metal, Fire,
+     Wood, Water, Earth), so each phase gets one BIG ring-sector container
+     over its trigrams, extending radially past the ends of their glyph-and-
+     name labels so the labels sit inside its outline, with the phase's name
+     along the arc in the container's inner strip. */
+  { let runStart = 0;
+    const flush = end => { const ph = TRIGRAMS.find(x=>x.name===names[runStart]).phase;
+      const memberNames = new Set(names.slice(runStart, end+1));
+      const r1 = Math.max(...names.slice(runStart, end+1).map(nm=>labEndC(TRIGRAMS.find(x=>x.name===nm)))) + 10;
+      addShell(svg, outer+4, r1, groups[runStart].a0-0.014, groups[end].a1+0.014, ph+" "+PHASE_HZ[ph], PCOL[ph],
+        ()=>{ ribbons.forEach((r,k)=> r.setAttribute("fill-opacity", (memberNames.has(ribbonH[k].lower)||memberNames.has(ribbonH[k].upper))?0.9:0.07));
+              arcPaths.forEach((ap,k)=> ap.setAttribute("fill-opacity", memberNames.has(names[k])?1:0.35));
+              capShow(svg, [...memberNames].map(nm=>compLabels[nm])); },
+        ()=>{ ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)); arcPaths.forEach(ap=>ap.setAttribute("fill-opacity",0.92)); refreshCompCaps(); }, true, outer+10); };
+    for (let i=1;i<names.length;i++){ if (TRIGRAMS.find(x=>x.name===names[i]).phase !== TRIGRAMS.find(x=>x.name===names[runStart]).phase){ flush(i-1); runStart = i; } }
+    flush(names.length-1); }
   groups.forEach((g,i) => {
     if (g.value<=0) return;
     const t = TRIGRAMS.find(x=>x.name===names[i]);
     const p = el("path", {d:annulus(inner, outer, g.a0, g.a1), fill:PCOL[t.phase], "fill-opacity":0.92, class:"hov"}, svg);
+    arcPaths.push(p);
     p.addEventListener("click", ()=>triDetail(t));
-    bindHover(p, ()=>hoverRecordsHTML(t.sym+" "+t.hz+" "+t.name, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
-      "This arc is the trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"). Ribbons leaving it are the 8 hexagrams where it is the upper trigram; ribbons arriving are the 8 where it is the lower. Its lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+"."));
-    const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
-    const tx = txt(svg, t.sym+" "+t.hz+" "+t.name, {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
-    tx.addEventListener("click", ()=>triDetail(t));
-    bindHover(tx, ()=> "<h4>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h4><p>The trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"), phase "+esc(t.phase)+". Click for the sixteen hexagrams it takes part in.</p>");
+    p.addEventListener("mouseover", ()=>capShow(svg, [compLabels[t.name], ...names.filter(nm=>nm!==t.name).map(nm=>compLabels[nm])]));
+    p.addEventListener("mouseout", refreshCompCaps);
+    bindHover(p, ()=>hoverRecordsHTML(triGlyphSVG(t,15)+" "+esc(triLabel(t)), [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+      "This arc is the trigram <b>"+esc(triLabel(t))+"</b> ("+esc(t.nature)+"). The ribbons touching it are the 16 hexagrams it takes part in: 8 where it is the lower trigram (the bottom three lines, read first) and 8 where it is the upper trigram (the top three lines). Its lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+". Legge: "+esc(t.leggeShort)+".", true));
+    const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+20), gw = 13;
+    const lg = el("g", {transform:lt.transform, class:"hov"}, svg);
+    const gg = glyphGroup(lg, t.lines, gw, "var(--ink)");
+    gg.setAttribute("transform", "translate("+(lt.anchor==="start" ? lt.x+gw/2 : lt.x-gw/2)+",0)");
+    txt(lg, triLabel(t), {class:"lbl hov", "text-anchor":lt.anchor, x: lt.anchor==="start" ? lt.x+gw+5 : lt.x-gw-5, dy:"0.35em"});
+    compLabels[t.name] = lg;
+    lg.addEventListener("click", ()=>triDetail(t));
+    lg.addEventListener("mouseover", ()=>capShow(svg, [lg, ...names.filter(nm=>nm!==t.name).map(nm=>compLabels[nm])]));
+    lg.addEventListener("mouseout", refreshCompCaps);
+    bindHover(lg, ()=> "<h4>"+triGlyphSVG(t,15)+" "+esc(triLabel(t))+"</h4><p>The trigram <b>"+esc(triLabel(t))+"</b> ("+esc(t.nature)+"), phase "+esc(t.phase)+". Click for the sixteen hexagrams it takes part in.</p>");
   });
   centre4 = taijitu(svg, 26, 0.5);
   });
@@ -1498,8 +2364,321 @@ function arrowDefs(svg){
 
 <script>
 "use strict";
+/* ================= 5 · The Wheel: yin–yang centre, Wuxing ring =================
+   Angles here are measured clockwise from the top of the circle (the polar()
+   helper's convention), in the Chinese orientation: south at the top, east at
+   the left, west at the right, north at the bottom. The five sectors are 72°
+   each, laid clockwise from the left-hand end of the diameter (270°) in
+   generating order — so Earth falls centred on the right-hand end (90°).
+   The bagua is NOT drawn on this wheel: the eight stations (45°) and the five
+   sectors (72°) partition the circle differently, and seating the trigrams
+   over the sectors made the drawing misstate their elements (pure-yin Kun
+   fell inside the Fire sector). The trigrams stand alone in the Bagua chart. */
 (function(){
-  var ORDER = ["flows","tables","bundle","composition"];
+  const insp = document.getElementById("insp-wheel");
+  const RAD = d => d*Math.PI/180;
+  const WHEEL = [
+    {phase:"Wood",  start:270, season:"spring",      dirEn:"east",  luo:3, image:"少陽 young yang",
+     pos:"begins exactly at the left-hand end of the diameter — the balance point where yang starts to wax — and runs through the yang half"},
+    {phase:"Fire",  start:342, season:"summer",      dirEn:"south", luo:9, image:"太陽 old yang",
+     pos:"crosses the top of the circle — the peak of the yang half, south in this orientation — entirely inside the yang half"},
+    {phase:"Earth", start:414, season:"late summer", dirEn:"centre", luo:5, image:"the pivot — balance turning",
+     pos:"is centred on the right-hand end of the diameter and split evenly by it, half in the yang half and half in the yin"},
+    {phase:"Metal", start:486, season:"autumn",      dirEn:"west",  luo:7, image:"少陰 young yin",
+     pos:"lies in the yin half, yang spent and yin rising"},
+    {phase:"Water", start:558, season:"winter",      dirEn:"north", luo:1, image:"太陰 old yin",
+     pos:"closes the ring in the yin half and ends at the left-hand end of the diameter — the edge of yin, back at the balance point where Wood begins"}
+  ];
+  WHEEL.forEach(w => { w.a0 = RAD(w.start); w.a1 = RAD(w.start+72); w.mid = RAD(w.start+36); });
+  function suwenVal(fam, p){ const row = SUWEN.families.find(f=>f[0]===fam); return row ? row[1][PHASES.indexOf(p)] : ""; }
+  function wheelRecs(p){
+    const out = [];
+    ["direction","season","colour","organ","flavour","tone"].forEach(f => {
+      const r = RECORDS.find(x=>x.scheme==="suwen4"&&x.phase===p&&x.family===f); if (r) out.push(r); });
+    RECORDS.filter(x=>x.scheme==="luoshu"&&x.phase===p&&x.relation.indexOf("trigram")!==0).forEach(r=>out.push(r));
+    return out;
+  }
+  let centre5 = null;
+  /* endpoint capsules: phase -> sector group; a click pins a sector or the centre */
+  let wheelSvg = null, wheelSectorEls = {}, wheelCentreEl = null, wheelPin = null;
+  function wheelCapsFor(p){ const gen = GEN.find(([a])=>a===p), genBy = GEN.find(([,b])=>b===p);
+    return [wheelSectorEls[p], wheelCentreEl,
+      gen ? wheelSectorEls[gen[1]] : null, genBy ? wheelSectorEls[genBy[0]] : null]; }
+  function refreshWheelCaps(){ if (!wheelSvg) return;
+    if (wheelPin === "centre") capShow(wheelSvg, [wheelCentreEl]);
+    else if (wheelPin) capShow(wheelSvg, wheelCapsFor(wheelPin));
+    else clearCaps(wheelSvg); }
+  /* Centre gauge in the taijitu pattern — proportion ring, % label beneath,
+     phasor hand under the setting — but the medallion itself is the diameter
+     split this chart specifies: yang above the line, yin below it. */
+  function wheelCentre(parent, r, restFrac){
+    const g = el("g", {class:"hov"}, parent);
+    el("circle", {cx:0, cy:0, r:r+11, fill:"var(--panel)", stroke:"var(--line)"}, g);
+    el("circle", {cx:0, cy:0, r:r+5, fill:"none", stroke:"#cfc6ae", "stroke-width":3}, g);
+    const ring = el("path", {fill:"none", stroke:"#26221a", "stroke-width":3}, g);
+    const disc = el("g", {}, g);
+    el("circle", {cx:0, cy:0, r:r, fill:"#f5efe2", stroke:"#26221a", "stroke-width":1}, disc);
+    el("path", {d:"M"+(-r)+",0 A"+r+","+r+" 0 0 0 "+r+",0 Z", fill:"#26221a"}, disc);
+    el("line", {x1:-r, y1:0, x2:r, y2:0, stroke:"#26221a", "stroke-width":1.4}, disc);
+    txt(disc, "陽 yang", {x:0, y:-r*0.40, "text-anchor":"middle", style:"fill:#26221a;font-size:9.5px"});
+    txt(disc, "陰 yin", {x:0, y:r*0.58, "text-anchor":"middle", style:"fill:#f5efe2;font-size:9.5px"});
+    const label = txt(g, "", {"text-anchor":"middle", y:r+24, class:"lbl-sm"});
+    const hand = el("g", {style:"display:none"}, g);
+    const handLine = el("line", {x1:0, y1:0, x2:0, y2:0, stroke:"#b03a2e", "stroke-width":1.7}, hand);
+    const handDot = el("circle", {r:2.3, fill:"#b03a2e"}, hand);
+    function update(frac, z){
+      const rr = r+5, a0 = -Math.PI/2, a1 = a0 + frac*2*Math.PI;
+      const x0 = rr*Math.cos(a0), y0 = rr*Math.sin(a0), x1 = rr*Math.cos(a1), y1 = rr*Math.sin(a1);
+      ring.setAttribute("d", frac<=0 ? "" :
+        frac>=1 ? "M"+(-rr)+",0 A"+rr+","+rr+" 0 1 1 "+rr+",0 A"+rr+","+rr+" 0 1 1 "+(-rr)+",0" :
+        "M"+x0+","+y0+" A"+rr+","+rr+" 0 "+(frac>0.5?1:0)+" 1 "+x1+","+y1);
+      label.textContent = Math.round(frac*100)+"% yang"+(z && z.w ? " · "+z.w : "");
+      if (window.PHASOR_ON && z){
+        const mod = Math.hypot(z.re, z.im), len = Math.min(1, mod) * (r-1.5);
+        const ang = Math.atan2(-z.im, z.re);
+        const hx = len*Math.cos(ang), hy = len*Math.sin(ang);
+        handLine.setAttribute("x2", hx); handLine.setAttribute("y2", hy);
+        handDot.setAttribute("cx", hx); handDot.setAttribute("cy", hy);
+        hand.setAttribute("style", "display:block");
+      } else hand.setAttribute("style", "display:none");
+    }
+    update(restFrac);
+    return {update:update, group:g};
+  }
+  function centreDetail(){
+    if (centre5) centre5.update(0.5, yyZ({frac:0.5, mv:{w:"balanced", im:0}}));
+    insp.innerHTML = "<h3>陰陽 Yin and yang — the centre</h3>"+
+      "<p class='sub'>The wheel at rest: the whole displayed system in balance.</p>"+
+      "<p>The centre is divided by the <b>diameter</b>: <b>yang above the line, yin below it</b>. The ring "+
+      "around it reads the yin–yang proportion of the selected sector — schematic for a phase, as "+
+      "everywhere in these diagrams.</p>"+
+      "<p>The diameter's two ends are the wheel's <b>balance points</b>, where yang and yin are equal and the "+
+      "direction of travel reverses. At the <b>left</b> end, yang begins to wax — Wood begins there. At the "+
+      "<b>right</b> end, yang begins to wane — Earth is centred there, split evenly by the line.</p>"+
+      "<p class='src'>The Luoshu arrangement gives the centre to Earth (5). This chart gives the centre to "+
+      "the yin–yang division and carries 5 in Earth's sector instead. Different charts show different "+
+      "aspects of the same phenomena — schemes may disagree between each other, never within.</p>";
+    wheelPin = "centre"; refreshWheelCaps();
+  }
+  function sectorDetail(w){
+    const p = w.phase, yy = {frac:PHASE_YY[p].yang, kind:"schematic · "+PHASE_YY[p].note, mv:phaseMove(p)};
+    if (centre5) centre5.update(yy.frac, yyZ(yy));
+    const luos = LUOSHU.filter(x=>x.phase===p);
+    let h = "<h3><span class='swatch' style='background:"+PCOL[p]+"'></span>"+esc(p)+" "+PHASE_HZ[p]+"</h3>"+
+      "<p class='sub'>Wuxing sector · "+esc(w.season)+" · "+esc(w.image)+"</p>"+
+      "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind, yy.mv)+"</p>"+
+      "<p>This sector <b>"+esc(w.pos)+"</b>. In the four-images reading it is "+esc(w.image)+".</p>"+
+      "<p style='margin:10px 0 2px'><b>Associations</b> — carried inside this ring-sector （素問 ch. 4 row, with the Luoshu number)</p><ul>"+
+      "<li>Season: "+esc(suwenVal("season", p))+"</li>"+
+      "<li>Direction: "+esc(suwenVal("direction", p))+"</li>"+
+      "<li>Colour: "+esc(suwenVal("colour", p))+" · Organ: "+esc(suwenVal("organ", p))+"</li>"+
+      "<li>Flavour: "+esc(suwenVal("flavour", p))+" · Tone: "+esc(suwenVal("tone", p))+"</li>"+
+      "<li>Luoshu number: <b>"+w.luo+"</b> ("+esc(w.dirEn)+" position) — the phases' numbers in the tables "+
+      "(角 8, 徵 7, 宮 5, 商 9, 羽 6) are a separate scheme from the Luoshu's nine positions</li></ul>"+
+      "<p style='margin:10px 0 2px'><b>Luoshu positions in this phase's direction</b></p><ul>"+
+      luos.map(x=>"<li>"+x.n+" · "+esc(x.dir)+"</li>").join("")+"</ul>";
+    if (p==="Earth") h += "<p class='src'>This Earth is the seasonal Earth — 長夏 late summer, the pivot "+
+      "between Fire and Metal — not the centre Earth of the direction schemes. The centre of this chart "+
+      "belongs to the yin–yang division; Earth's Luoshu 5 rides in this sector, and the Luoshu presentation "+
+      "elsewhere in these diagrams gives 5 its centre. The two aspects stand side by side, unmerged.</p>";
+    insp.innerHTML = h + recordsHTML(wheelRecs(p).slice(0, 10), false);
+    wheelPin = p; refreshWheelCaps();
+  }
+  function draw(){
+    const showAssoc = document.getElementById("wheel-assoc").checked;
+    const size = 700, R_IN = 100, R_OUT = 212;
+    const fig = document.getElementById("fig-wheel"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-size/2-40)+" "+(-size/2-40)+" "+(size+80)+" "+(size+80), role:"img",
+      "aria-label":"Wheel diagram: yin and yang at the centre, the five phases in a ring — no trigrams on this chart"}, fig);
+    wheelSvg = svg; wheelSectorEls = {}; wheelCentreEl = null; wheelPin = null;
+    el("circle", {cx:0, cy:0, r:R_IN, fill:"var(--panel)"}, svg);
+    const sectorEls = [];
+    /* the diameter, extended through the ring as a faint dashed line */
+    [[-R_OUT,-R_IN],[R_IN,R_OUT]].forEach(([x0,x1]) =>
+      el("line", {x1:x0, y1:0, x2:x1, y2:0, stroke:"var(--ink2)", "stroke-width":1, "stroke-dasharray":"3 4", "stroke-opacity":0.55, "pointer-events":"none"}, svg));
+    WHEEL.forEach(w => {
+      const g = el("g", {class:"hov"}, svg);
+      const path = el("path", {d:annulus(R_IN, R_OUT, w.a0, w.a1), fill:PCOL[w.phase], "fill-opacity":0.5, stroke:"var(--panel)", "stroke-width":1.2}, g);
+      const [mx,my] = polar(156, w.mid);
+      txt(g, PHASE_HZ[w.phase]+" "+w.phase, {x:mx, y:my-15, "text-anchor":"middle", class:"sec-name"});
+      txt(g, w.season, {x:mx, y:my+3, "text-anchor":"middle", class:"sec-sub"});
+      if (showAssoc) txt(g, (w.phase==="Earth" ? "pivot · Luoshu 5" : w.dirEn+" · Luoshu "+w.luo), {x:mx, y:my+19, "text-anchor":"middle", class:"sec-assoc"});
+      sectorEls.push({path:path, w:w});
+      wheelSectorEls[w.phase] = g;
+      g.addEventListener("click", ()=>sectorDetail(w));
+      g.addEventListener("mouseover", ()=>{ sectorEls.forEach(s=>s.path.setAttribute("fill-opacity", s.w===w?0.85:0.16));
+        capShow(svg, wheelCapsFor(w.phase)); });
+      g.addEventListener("mouseout", ()=>{ sectorEls.forEach(s=>s.path.setAttribute("fill-opacity",0.5)); refreshWheelCaps(); });
+      bindHover(g, ()=>hoverRecordsHTML(PHASE_HZ[w.phase]+" "+w.phase+" — "+w.season, wheelRecs(w.phase).slice(0,5),
+        "This is the <b>"+esc(w.phase)+"</b> sector of the Wuxing ring: it <b>"+esc(w.pos)+"</b>. Season "+
+        esc(w.season)+"; four-images name "+esc(w.image)+"; Luoshu number "+w.luo+". Its associations, carried inside this sector, state:"));
+    });
+    /* Category shell for the Wuxing ring: one outline band around the whole ring,
+       label on its outer edge. */
+    const shellOver = ()=>{ sectorEls.forEach(s=>s.path.setAttribute("fill-opacity",0.85));
+      capShow(svg, WHEEL.map(w=>wheelSectorEls[w.phase])); };
+    const shellOut = ()=>{ sectorEls.forEach(s=>s.path.setAttribute("fill-opacity",0.5)); refreshWheelCaps(); };
+    addShell(svg, R_OUT+4, R_OUT+16, RAD(200), RAD(380), "", "#8a6d3b", shellOver, shellOut);
+    addShell(svg, R_OUT+4, R_OUT+16, RAD(380), RAD(560), "", "#8a6d3b", shellOver, shellOut);
+    { const lt = labelTransform(RAD(290), R_OUT+17);
+      const ltEl = txt(svg, "The five phases · 五行 Wuxing", {class:"shell-lbl hov", transform:lt.transform,
+        "text-anchor":lt.anchor, x:lt.x, dy:"0.35em", fill:"#8a6d3b"});
+      bindHover(ltEl, ()=>"<h4>The five phases · 五行</h4><p>This outline band is the <b>Wuxing shell</b>: it encloses the ring's five sectors — Wood, Fire, Earth, Metal, Water in generating order, clockwise from the left-hand end of the diameter. The bagua is not part of this chart; it stands alone in the Bagua tab.</p>");
+      ltEl.addEventListener("mouseover", shellOver); ltEl.addEventListener("mouseout", shellOut); }
+    /* Centre: yin–yang across the diameter, with the gauge ring. */
+    centre5 = wheelCentre(svg, 62, 0.5);
+    wheelCentreEl = centre5.group;
+    centre5.group.addEventListener("click", centreDetail);
+    centre5.group.addEventListener("mouseover", ()=>capShow(svg, [wheelCentreEl]));
+    centre5.group.addEventListener("mouseout", refreshWheelCaps);
+    bindHover(centre5.group, ()=>"<h4>陰陽 Yin and yang — the centre</h4><p>The centre is divided by the <b>diameter</b>: <b>yang above the line, yin below it</b>. Its two ends are the balance points of the wheel — Wood begins at the left end, where yang starts to wax; Earth is centred on the right end, where yang starts to wane. Click for the centre's own note.</p>");
+    insp.innerHTML = "<h3>Reading the wheel</h3>"+
+      "<p class='sub'>Hover a sector or the centre to have it explained. Click for its full record.</p>"+
+      "<p class='src'>Orientation: south at the top, east at the left — the orientation the Luoshu itself "+
+      "uses. The diameter's two ends are the wheel's balance points: at the left, yang begins to wax "+
+      "(Wood begins); at the right, yang begins to wane (Earth is centred).</p>";
+  }
+  document.getElementById("wheel-assoc").addEventListener("change", draw);
+  window.__spa.register("wheel", draw);
+})();
+</script>
+
+<script>
+"use strict";
+/* ================= 6 · The Bagua, standing alone =================
+   The eight trigrams in an octagon around a taijitu centre — no Wuxing ring
+   beneath them. Each trigram's element is a stated association (written under
+   its name, coloured by its phase, and spelled out in the inspector), keyed by
+   its Later Heaven direction. It is never implied by position over a sector,
+   because this chart has no sectors: the 45° stations and the 72° phase
+   sectors cannot share one geometry without misstating the correspondences. */
+(function(){
+  const insp = document.getElementById("insp-bagua");
+  const RAD = d => d*Math.PI/180;
+  const DIR_DEG = {north:180, northeast:225, east:270, southeast:315, south:0, southwest:45, west:90, northwest:135};
+  let centre6 = null;
+  /* endpoint capsules: trigram name -> [glyph group, name label, element label];
+     a click pins the trigram (with its King Wen opposite) or the centre */
+  let baguaSvg = null, baguaEls = {}, baguaCentreEl = null, baguaPin = null;
+  function baguaOppName(nm){ const pr = OPPOSITES.find(p=>p.indexOf(nm)>=0);
+    return pr ? (pr[0]===nm ? pr[1] : pr[0]) : null; }
+  function refreshBaguaCaps(){ if (!baguaSvg) return;
+    if (baguaPin === "centre") capShow(baguaSvg, [baguaCentreEl]);
+    else if (baguaPin) capShow(baguaSvg, [baguaEls[baguaPin], baguaEls[baguaOppName(baguaPin)]]);
+    else clearCaps(baguaSvg); }
+  function octPoints(R){ const pts = []; for (let k=0;k<8;k++){ const pt = polar(R, RAD(22.5+45*k)); pts.push(pt[0].toFixed(1)+","+pt[1].toFixed(1)); } return pts.join(" "); }
+  function centreDetail(){
+    if (centre6) centre6.update(0.5, yyZ({frac:0.5, mv:{w:"balanced", im:0}}));
+    insp.innerHTML = "<h3>陰陽 Yin and yang — the centre</h3>"+
+      "<p class='sub'>The bagua at rest: the whole displayed system in balance.</p>"+
+      "<p>The centre gauge reads the yin–yang proportion of the selected trigram — <b>exact</b>, counted "+
+      "from its lines: Qián is 100% yang (three solid lines), Kūn is 0% yang (three broken lines). At rest "+
+      "it shows balance.</p>"+
+      "<p style='margin:10px 0 2px'><b>Element associations</b> — the trigram–element table, keyed by each "+
+      "trigram's Later Heaven direction. It is stated here as data; no Wuxing ring is drawn under the "+
+      "octagon for position to imply it.</p><ul>"+
+      PHASES.map(p=>"<li><span class='swatch' style='background:"+PCOL[p]+"'></span><b>"+esc(p)+" "+PHASE_HZ[p]+"</b> — "+
+        TRIGRAMS.filter(t=>t.phase===p).map(t=>esc(triLabel(t))+" ("+esc(t.dir)+")").join(", ")+"</li>").join("")+"</ul>"+
+      "<p class='src'>Earth takes the two transitional corner stations — Kūn at the southwest and Gèn at "+
+      "the northeast — a diagonal pair of opposed points, not an arc. That is the bagua's own way of placing "+
+      "the pivot element, and it is one reason the bagua and the five-sector wheel are kept as separate charts.</p>";
+    baguaPin = "centre"; refreshBaguaCaps();
+  }
+  function triDetail(t){
+    const yy = {frac:triYang(t), kind:"exact — counted from the trigram's lines", mv:triMove(t)};
+    if (centre6) centre6.update(yy.frac, yyZ(yy));
+    const luo = LUOSHU.find(x=>x.trigram===t.name);
+    const pair = OPPOSITES.find(p=>p.indexOf(t.name)>=0);
+    const opp = pair ? TRIGRAMS.find(x=>x.name===(pair[0]===t.name ? pair[1] : pair[0])) : null;
+    const phaseRec = RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name);
+    const placed = RECORDS.find(r=>r.scheme==="luoshu"&&r.relation.indexOf("trigram")===0&&r.object===t.hz+" "+t.name);
+    const pure = t.lines.every(l=>l===1) ? " Pure yang — three solid lines." :
+                 t.lines.every(l=>l===0) ? " Pure yin — three broken lines; the most yin figure in the system." : "";
+    insp.innerHTML = "<h3>"+triGlyphSVG(t, 26)+" "+esc(triLabel(t))+"</h3>"+
+      "<p class='sub'>"+esc(t.nature)+" · Later Heaven station: "+esc(t.dir)+"</p>"+
+      "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind, yy.mv)+"</p>"+
+      "<p>Lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+"."+pure+"</p>"+
+      "<p><b>Element association: "+esc(t.phase)+" "+PHASE_HZ[t.phase]+"</b> — this trigram's element in the "+
+      "Later Heaven arrangement, keyed by its direction ("+esc(t.dir)+"). It is stated as an association, "+
+      "not read off a sector beneath the glyph: this chart draws no Wuxing ring, so nothing in the picture "+
+      "can argue with it.</p>"+
+      (luo ? "<p>Luoshu position: <b>"+luo.n+"</b> · "+esc(luo.dir)+".</p>" : "")+
+      (opp ? "<p>Opposite in the King Wen pairing: "+triGlyphSVG(opp, 15)+" <b>"+esc(triLabel(opp))+"</b> — "+
+        esc(opp.nature)+", station "+esc(opp.dir)+", element "+esc(opp.phase)+".</p>" : "")+
+      triLeggeHTML(t)+recordsHTML([phaseRec, placed].filter(Boolean), false);
+    baguaPin = t.name; refreshBaguaCaps();
+  }
+  function draw(){
+    const showElem = document.getElementById("bagua-elem").checked;
+    const showOpp = document.getElementById("bagua-opp").checked;
+    const size = 700, R_ST = 208;
+    const fig = document.getElementById("fig-bagua"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-size/2-40)+" "+(-size/2-40)+" "+(size+80)+" "+(size+80), role:"img",
+      "aria-label":"Bagua diagram: the eight trigrams in an octagon around a yin-yang centre, standing alone with no Wuxing ring"}, fig);
+    baguaSvg = svg; baguaEls = {}; baguaCentreEl = null; baguaPin = null;
+    /* Opposite pairs: straight ties across the centre, behind everything else. */
+    if (showOpp) OPPOSITES.forEach(([a,b]) => {
+      const A = TRIGRAMS.find(t=>t.name===a), B = TRIGRAMS.find(t=>t.name===b);
+      const [ax,ay] = polar(R_ST, RAD(DIR_DEG[A.dir])), [bx,by] = polar(R_ST, RAD(DIR_DEG[B.dir]));
+      el("line", {x1:ax, y1:ay, x2:bx, y2:by, stroke:"var(--ink2)", "stroke-width":1, "stroke-dasharray":"3 5", "stroke-opacity":0.45, "pointer-events":"none"}, svg);
+    });
+    /* The octagonal shell and its outer outline — sized BIG, like the ring-
+       sector containers on the circle diagrams, so that each station's name
+       label and element label sit INSIDE the octagon's outline: at a station
+       angle the inner polygon's edge lies at 302·cos(22.5°) ≈ 279 from the
+       centre, beyond the element labels' outer edge (≈275). */
+    const glyphEls = [];
+    const octOuter = el("polygon", {points:octPoints(316), fill:"none", stroke:"#8a6d3b", "stroke-opacity":0.55,
+      "stroke-width":1.2, "pointer-events":"stroke", class:"hov"}, svg);
+    el("polygon", {points:octPoints(302), fill:"#8a6d3b", "fill-opacity":0.04, stroke:"var(--ink2)", "stroke-width":1.4, "pointer-events":"none"}, svg);
+    bindHover(octOuter, ()=>"<h4>The eight trigrams · 八卦 Bagua</h4><p>This octagon is the <b>bagua shell</b>, standing alone: the eight trigrams inside it at their Later Heaven directional stations — Li south at the top, Zhen east at the left, Kan north at the bottom, Dui west at the right, and the four corner trigrams between. There is no Wuxing ring beneath them; each element is a stated association.</p>");
+    octOuter.addEventListener("mouseover", ()=>capShow(svg, TRIGRAMS.map(t=>baguaEls[t.name])));
+    octOuter.addEventListener("mouseout", refreshBaguaCaps);
+    { const octLbl = txt(svg, "The eight trigrams · 八卦 Bagua", {x:0, y:-330, "text-anchor":"middle", class:"shell-lbl hov", fill:"#8a6d3b"});
+      bindHover(octLbl, ()=>"<h4>The eight trigrams · 八卦 Bagua</h4><p>The label of the octagonal shell: the eight trigrams at their Later Heaven stations, in their own chart.</p>"); }
+    /* Trigram stations. */
+    TRIGRAMS.forEach(t => {
+      const a = RAD(DIR_DEG[t.dir]);
+      const [gx,gy] = polar(R_ST, a);
+      const g = el("g", {transform:"translate("+gx+","+gy+")", class:"hov"}, svg);
+      el("circle", {cx:0, cy:0, r:26, fill:"transparent"}, g);
+      glyphGroup(g, t.lines, 30, "var(--ink)");
+      glyphEls.push(g);
+      const ux = gx/R_ST, uy = gy/R_ST;
+      const lab = txt(svg, triLabel(t), {x:gx+ux*44, y:gy+uy*44, "text-anchor":"middle", dy:"0.35em", class:"lbl hov"});
+      let elemLab = null;
+      if (showElem) elemLab = txt(svg, t.phase+" "+PHASE_HZ[t.phase], {x:gx+ux*62, y:gy+uy*62, "text-anchor":"middle", dy:"0.35em", class:"lbl-sm hov", fill:PCOL[t.phase], style:"font-weight:650"});
+      baguaEls[t.name] = [g, lab].concat(elemLab ? [elemLab] : []);
+      const hoverHTML = ()=>"<h4>"+triGlyphSVG(t,15)+" "+esc(triLabel(t))+"</h4><p>The trigram <b>"+esc(triLabel(t))+"</b> ("+esc(t.nature)+") at its Later Heaven station, <b>"+esc(t.dir)+"</b>, in the octagon. Its element association is <b>"+esc(t.phase)+"</b> — stated, not implied by position. Legge: "+esc(t.leggeShort)+".</p>";
+      [g, lab].concat(elemLab ? [elemLab] : []).forEach(e2 => { e2.addEventListener("click", ()=>triDetail(t)); bindHover(e2, hoverHTML);
+        e2.addEventListener("mouseover", ()=>capShow(svg, [baguaEls[t.name], baguaEls[baguaOppName(t.name)]]));
+        e2.addEventListener("mouseout", refreshBaguaCaps); });
+    });
+    /* Centre: the taijitu gauge, as in the other charts. */
+    centre6 = taijitu(svg, 60, 0.5);
+    const hit = el("circle", {cx:0, cy:0, r:74, fill:"transparent", class:"hov"}, svg);
+    baguaCentreEl = hit;
+    hit.addEventListener("click", centreDetail);
+    hit.addEventListener("mouseover", ()=>capShow(svg, [hit]));
+    hit.addEventListener("mouseout", refreshBaguaCaps);
+    bindHover(hit, ()=>"<h4>陰陽 Yin and yang — the centre</h4><p>The taijitu at the centre of the octagon. Click a trigram and the gauge reads its exact yin–yang proportion, counted from its lines; click the centre for the element-association table.</p>");
+    insp.innerHTML = "<h3>Reading the bagua</h3>"+
+      "<p class='sub'>Hover a trigram or the centre to have it explained. Click for its full record, with Legge.</p>"+
+      "<p class='src'>Orientation: south at the top, east at the left, as in the Later Heaven arrangement. "+
+      "Element associations follow each trigram's Later Heaven direction: Metal — Qian (northwest) and "+
+      "Dui (west); Wood — Zhen (east) and Xun (southeast); Fire — Li (south); Water — Kan (north); "+
+      "Earth — Kun (southwest) and Gen (northeast).</p>";
+  }
+  document.getElementById("bagua-elem").addEventListener("change", draw);
+  document.getElementById("bagua-opp").addEventListener("change", draw);
+  window.__spa.register("bagua", draw);
+})();
+</script>
+
+<script>
+"use strict";
+(function(){
+  var ORDER = ["flows","tables","bundle","composition","wheel","bagua"];
   var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-tab]"));
   var panels = {};
   ORDER.forEach(function(id){ panels[id]=document.getElementById(id); });
@@ -1507,7 +2686,7 @@ function arrowDefs(svg){
   function idFromHash(){
     var h = (location.hash||"").replace("#","");
     // allow old anchors too
-    if (h==="flows"||h==="tables"||h==="bundle"||h==="composition") return h;
+    if (h==="flows"||h==="tables"||h==="bundle"||h==="composition"||h==="wheel"||h==="bagua") return h;
     return null;
   }
   function activate(id, opts){
@@ -1621,6 +2800,23 @@ function arrowDefs(svg){
     }
   });
   document.addEventListener("click", function(e){ if (!e.target.closest || !e.target.closest("svg")) hideHover(); });
+})();
+</script>
+<script>
+"use strict";
+/* Phasor setting: off by default. When enabled, yin–yang readouts also show the
+   complex form z = balance + i·momentum and the centre gauges draw a phasor hand.
+   Redraws the active diagram so gauges and new readouts pick the setting up. */
+(function(){
+  var pt = document.getElementById("phasor-toggle");
+  if (!pt) return;
+  pt.addEventListener("change", function(){
+    window.PHASOR_ON = pt.checked;
+    var cur = window.__spaCurrent ? window.__spaCurrent() : "flows";
+    if (window.__spa && window.__spa.inits && window.__spa.inits[cur]){
+      try { window.__spa.inits[cur](); } catch(e){ console.error(e); }
+    }
+  });
 })();
 </script>
 </body>

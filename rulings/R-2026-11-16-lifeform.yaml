@@ -1,0 +1,9 @@
+# Owner ruling — see R-2026-11-15 for the rulings-layer discipline.
+id: "R-2026-11-16-lifeform"
+date: "2026-11-16"
+scheme: "CREATURE_CLASS_YUELING_V1"
+title: "A creature is classified by its whole form across its life"
+statement: "A creature is classified by its whole form across its life, not by the stage at which it is met. The silkworm is a scaled creature in its larval stage: it takes the scaled (Wood) placement and comes off the naked list."
+grounds: "The silkworm's coveringless appearance is one life stage of a creature whose form, taken whole, is scaled. Classification by the stage met would file the same creature in different classes at different ages."
+effect: "Amends R-2026-11-15's list: of the seven soft-bodied naked predictions, six stand (octopus, squid, sea cucumber, toad, frog, leech); the silkworm's naked prediction is withdrawn and a scaled prediction stands in its place."
+record_source: "AnSci record: owner ruling, recorded 2026-11-16."

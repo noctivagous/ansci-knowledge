@@ -1,0 +1,11 @@
+# Owner ruling — a first-class record. A ruling may supersede a mechanical
+# derivation or a recommendation, but it is recorded AS a ruling; it never
+# rewrites the source layer. See DESIGN.md, layer 4.
+id: "R-2026-11-15"
+date: "2026-11-15"
+scheme: "CREATURE_CLASS_YUELING_V1"
+title: "The naked class takes members by its criterion (bare skin)"
+statement: "Membership in the naked class (倮) is by the class's criterion — bare skin — not by its exemplar alone. The 500-object run's seven soft-bodied positions (octopus, squid, sea cucumber, toad, frog, leech, silkworm) stand as T4 predictions. Zheng Xuan's extension of the class to tigers and leopards is set aside as an opinionated edge case, not a precedent."
+grounds: "The soft creatures are bare-skinned by the criterion the class is named for; a tiger has a covering, however short, so Zheng's thin-fur extension is the weaker membership claim, not a bridge. The schemes' own formula (360 creatures per class, a chief over each) makes the chief the foremost member, not the only one. Governing method, given with the ruling: opinionated edge-case contradictions can usually be avoided rather than adjudicated; alignment with the system and common sense govern; the categories are Semblances (象) in the Xici's sense — things are figured by their material forms and their character, and placed by according with the semblance."
+effect: "Supersedes the narrow-scope recommendation in the Huainanzi survey (which would have taken the seven positions down to T5 and kept Zheng's extension as the flagged case). The survey's evidence sections stand as written; only its recommendation is superseded."
+record_source: "AnSci record: ansci-git/docs/ansci/wp1c-huainanzi-survey.md, section 6, correction note dated 2026-11-15 (layered over the original recommendation, not a silent edit)."

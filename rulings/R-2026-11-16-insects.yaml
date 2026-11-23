@@ -1,0 +1,9 @@
+# Owner ruling — see R-2026-11-15 for the rulings-layer discipline.
+id: "R-2026-11-16-insects"
+date: "2026-11-16"
+scheme: "CREATURE_CLASS_YUELING_V1"
+title: "Insects are scaled class (Wood); fine hair is not a covering"
+statement: "Insects belong to the scaled class (鱗, Wood). The bee takes that placement, and the other insects the 500-object run left unplaced as a rule gap move with it."
+grounds: "The bee's fuzz is hair, not fur, and fine hair is not a covering in the scheme's sense — the naked class's chief, the human, has hair on his arms, so naked never meant hairless. What governs an insect's placement is its scaled body, not its fuzz."
+effect: "Closes the insect rule gap in the 500-object run. Refines the covering criterion used by R-2026-11-15: a covering is a coat (fur, feathers, scales, shell), not fine hair."
+record_source: "AnSci record: owner ruling, recorded 2026-11-16; carried in ansci-git/src/ansci/classify.ts (insect climb stop note: scaled by the project's recorded ruling)."

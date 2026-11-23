@@ -1,0 +1,1627 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>AnSci Knowledge Diagrams — SPA</title>
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2rem; }
+      :root{
+        --bg:#f7f5f0; --panel:#fffdf8; --ink:#1d1a15; --ink2:#57503f; --line:#ddd5c2;
+        --accent:#8a5a1d; --chip:#efe9da;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{ --bg:#14120e; --panel:#1d1a14; --ink:#ece5d3; --ink2:#b3a98f; --line:#3a342a; --accent:#d9a44a; --chip:#2a251b; }
+      }
+      *{ box-sizing:border-box; }
+      body{ margin:0; background:var(--bg); color:var(--ink);
+        font-family: ui-sans-system, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height:1.5; }
+      main{ max-width:1180px; margin:0 auto; padding:20px 16px 64px; }
+      h1,h2{ font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight:600; }
+      h1{ font-size:1.65rem; margin:4px 0 6px; }
+      h2{ font-size:1.3rem; margin:0 0 4px; }
+      .lede{ color:var(--ink2); max-width:46rem; margin:0 0 8px; }
+      section{ margin-top:40px; border-top:1px solid var(--line); padding-top:22px; }
+      .sec-intro{ color:var(--ink2); max-width:46rem; margin:0 0 14px; }
+      .sec-intro b, .sec-intro strong{ color:var(--ink); }
+      .layout{ display:grid; grid-template-columns: minmax(0,1fr) 320px; gap:18px; align-items:start; }
+      @media (max-width: 860px){ .layout{ grid-template-columns: 1fr; } }
+      figure{ margin:0; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px; }
+      figure svg{ display:block; width:100%; height:auto; }
+      .controls{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:0 0 12px; }
+      .controls .grp{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+      .controls label{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; min-height:36px;
+        background:var(--chip); border-radius:999px; font-size:.85rem; cursor:pointer; }
+      .controls label input{ width:18px; height:18px; accent-color:var(--accent); }
+      .seg{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; flex-wrap:wrap; }
+      .seg button{ border:0; background:var(--panel); color:var(--ink); padding:6px 12px; min-height:36px;
+        font-size:.88rem; cursor:pointer; }
+      .seg button[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+      @media (prefers-color-scheme: dark){ .seg button[aria-pressed="true"]{ color:#171310; } }
+      .ctl-label{ font-size:.8rem; color:var(--ink2); text-transform:uppercase; letter-spacing:.06em; }
+      input[type="range"]{ min-height:36px; }
+      aside.inspector{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+        position:sticky; top:12px; max-height:85vh; overflow:auto; }
+      @media (max-width: 860px){ aside.inspector{ position:static; max-height:none; } }
+      aside.inspector h3{ margin:0 0 2px; font-size:1.05rem; font-family:"Iowan Old Style", Palatino, Georgia, serif; }
+      aside.inspector .sub{ color:var(--ink2); font-size:.86rem; margin:0 0 10px; }
+      aside.inspector ul{ margin:6px 0; padding-left:18px; }
+      aside.inspector li{ margin:3px 0; font-size:.92rem; }
+      .tag{ display:inline-block; font-size:.72rem; padding:1px 7px; border-radius:999px; background:var(--chip);
+        color:var(--ink2); vertical-align:1px; margin-left:4px; }
+      .tag.warn{ background:#f3d9c8; color:#7a3a12; }
+      @media (prefers-color-scheme: dark){ .tag.warn{ background:#4a2c17; color:#f0b98a; } }
+      .src{ color:var(--ink2); font-size:.82rem; }
+      .swatch{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+      .fallback{ padding:28px 12px; text-align:center; color:var(--ink2); }
+      footer{ margin-top:48px; border-top:1px solid var(--line); padding-top:14px; color:var(--ink2); font-size:.88rem; max-width:46rem; }
+
+      /* ---- SPA tabs ---- */
+      [hidden]{ display:none !important; }
+      .tabbar{ position:sticky; top:0; z-index:20; background:var(--bg); padding:10px 0 8px; margin:14px 0 4px; border-bottom:1px solid var(--line); }
+      .tabbar-inner{ display:flex; flex-wrap:wrap; gap:8px; }
+      .tab-btn{ flex:1 1 160px; min-height:48px; padding:8px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:1px; }
+      .tab-btn .tab-kicker{ font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink2); }
+      .tab-btn .tab-name{ font-size:.98rem; font-weight:650; line-height:1.2; font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; }
+      .tab-btn .tab-sub{ font-size:.82rem; color:var(--ink2); line-height:1.25; }
+      .tab-btn:hover{ border-color:var(--accent); }
+      .tab-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+      .tab-btn[aria-selected="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+      .tab-btn[aria-selected="true"] .tab-kicker, .tab-btn[aria-selected="true"] .tab-sub{ color:rgba(255,255,255,.82); }
+      @media (prefers-color-scheme: dark){ .tab-btn[aria-selected="true"]{ color:#171310; } .tab-btn[aria-selected="true"] .tab-kicker, .tab-btn[aria-selected="true"] .tab-sub{ color:rgba(23,19,16,.75); } }
+      @media (max-width:640px){ .tab-btn{ flex:1 1 calc(50% - 8px); } .tab-btn .tab-sub{ display:none; } }
+      section.tab-panel{ margin-top:18px; border-top:0; padding-top:6px; }
+      .panel-head{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:2px; }
+      .diagram-count{ font-size:.85rem; color:var(--ink2); white-space:nowrap; }
+
+      /* ===== Full-viewport stage + collapsed overlays + hover card ===== */
+      html,body{ height:100%; }
+      body{ overflow:hidden; }
+      main{ max-width:none; width:100%; height:100dvh; margin:0; padding:0; display:flex; flex-direction:column; }
+      .site-head{ display:flex; align-items:center; gap:10px; padding:6px 10px 2px; flex:0 0 auto; position:relative; z-index:40; }
+      .site-head h1{ font-size:1.02rem; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .about-btn{ min-height:32px; padding:4px 12px; border:1px solid var(--line); border-radius:999px; background:var(--panel); color:var(--ink); cursor:pointer; font-size:.84rem; flex:0 0 auto; }
+      .about-panel{ display:none; position:absolute; top:calc(100% + 6px); left:10px; width:min(600px,92vw); max-height:52vh; overflow:auto;
+        background:color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:10px; padding:12px 16px; box-shadow:0 10px 30px rgba(0,0,0,.18); }
+      .about-panel.open{ display:block; }
+      .about-panel .lede{ display:block; max-width:none; margin:0 0 8px; font-size:.92rem; }
+      .about-panel footer{ display:block; margin:0; border-top:1px solid var(--line); padding-top:8px; max-width:none; font-size:.82rem; }
+      main > h1, main > .lede, main > footer{ display:none; }
+      .tabbar{ flex:0 0 auto; position:relative; top:auto; margin:2px 0 0; padding:6px 10px; z-index:30; }
+      .tabbar-inner{ flex-wrap:nowrap; gap:6px; }
+      .tab-btn{ flex:1 1 0; min-height:40px; padding:5px 10px; flex-direction:row; align-items:baseline; gap:8px; border-radius:8px; }
+      .tab-btn .tab-kicker{ display:none; }
+      .tab-btn .tab-name{ font-size:.95rem; }
+      .tab-btn .tab-sub{ font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      @media (max-width:760px){ .tab-btn .tab-sub{ display:none; } .site-head h1{ font-size:.92rem; } }
+      section.tab-panel{ flex:1 1 auto; min-height:0; position:relative; overflow:hidden; margin:0; border:0; padding:0; }
+      section.tab-panel .layout{ position:absolute; inset:0; display:block; }
+      section.tab-panel figure{ position:absolute; inset:0; border:0; border-radius:0; background:transparent; padding:4px 50px;
+        display:flex; align-items:center; justify-content:center; transition:padding .25s ease; }
+      section.tab-panel figure svg{ width:100%; height:100%; max-width:100%; max-height:100%; }
+      section.tab-panel.has-left-open figure{ padding-left:316px; }
+      section.tab-panel.has-right-open figure{ padding-right:356px; }
+      @media (max-width:760px){ section.tab-panel figure{ padding:4px 42px; } section.tab-panel.has-left-open figure, section.tab-panel.has-right-open figure{ padding-left:42px; padding-right:42px; } }
+      /* overlay panels: collapsed = slim handle only */
+      .ov{ position:absolute; z-index:26; display:flex; align-items:stretch; }
+      .ov-handle{ border:1px solid var(--line); background:color-mix(in srgb, var(--panel) 86%, transparent); backdrop-filter:blur(8px);
+        color:var(--ink); cursor:pointer; font-size:.78rem; letter-spacing:.04em; padding:8px 5px; flex:0 0 auto; }
+      .ov-handle:hover{ border-color:var(--accent); color:var(--accent); }
+      .ov-body{ display:none; background:color-mix(in srgb, var(--panel) 90%, transparent); backdrop-filter:blur(10px);
+        border:1px solid var(--line); overflow:auto; overscroll-behavior:contain; }
+      .ov.open .ov-body{ display:block; }
+      .ov-left{ left:0; top:50%; transform:translateY(-50%); max-height:86%; }
+      .ov-left .ov-handle{ writing-mode:vertical-rl; border-radius:0 8px 8px 0; border-left:0; min-height:110px; }
+      .ov-left .ov-body{ width:262px; max-height:86vh; border-left:0; border-radius:0 10px 10px 0; padding:10px 12px; }
+      .ov-right{ right:0; top:50%; transform:translateY(-50%); flex-direction:row-reverse; max-height:86%; }
+      .ov-right .ov-handle{ writing-mode:vertical-rl; border-radius:8px 0 0 8px; border-right:0; min-height:110px; }
+      .ov-right .ov-body{ width:302px; max-height:86vh; border-right:0; border-radius:10px 0 0 10px; }
+      .ov-right .ov-body aside.inspector{ position:static; max-height:none; border:0; border-radius:0; background:transparent; padding:12px 14px; overflow:visible; }
+      .ov-left .ov-body .controls{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; margin:0; gap:8px; }
+      .ov-left .ov-body .controls .grp{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; }
+      .ov-left .ov-body .controls label{ width:100%; }
+      .ov-left .ov-body .seg{ flex-direction:column; }
+      .ov-left .ov-body .seg button{ text-align:left; }
+      .ov-info{ top:8px; left:56px; flex-direction:column; align-items:flex-start; max-width:min(370px,78vw); }
+      .ov-info .ov-handle{ writing-mode:horizontal-tb; border-radius:999px; padding:5px 12px; min-height:32px; }
+      .ov-info .ov-body{ width:min(370px,78vw); max-height:42vh; border-radius:10px; margin-top:6px; padding:10px 14px; }
+      .ov-info .ov-body h2{ font-size:1.02rem; margin:0 0 4px; }
+      .ov-info .ov-body .sec-intro{ font-size:.86rem; margin:0; max-width:none; }
+      @media (max-width:760px){ .ov-info{ left:48px; } .ov-left .ov-body{ width:min(262px,80vw); } .ov-right .ov-body{ width:min(302px,84vw); } }
+      .explain{ display:block; margin-top:2px; font-size:.86rem; color:var(--ink); }
+      /* hover information card */
+      #hover-card{ position:fixed; z-index:200; width:min(350px, calc(100vw - 20px)); max-height:46vh; overflow:auto; pointer-events:none;
+        background:color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter:blur(10px); color:var(--ink);
+        border:1px solid var(--accent); border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,.25); padding:10px 13px; font-size:.88rem; line-height:1.45; }
+      #hover-card[hidden]{ display:none !important; }
+      #hover-card h4{ margin:0 0 4px; font-size:.98rem; font-family:"Iowan Old Style", Palatino, Georgia, serif; }
+      #hover-card p{ margin:4px 0; }
+      #hover-card .hc-meta{ color:var(--ink2); font-size:.8rem; margin-top:5px; }
+      #hover-card .hc-warn{ color:#7a3a12; }
+      @media (prefers-color-scheme: dark){ #hover-card .hc-warn{ color:#f0b98a; } }
+      text.lbl{ font-size:11px; fill:var(--ink); }
+      text.lbl-sm{ font-size:9.5px; fill:var(--ink); }
+      .hov{ cursor:pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>The correspondence web, in chords and bundles</h1>
+      <p class="lede">The schemes held in <i>ansci-knowledge</i> connect the five phases （五行） to seasons,
+        flavours, organs, grains, animals, the creature classes of the <i>Yueling</i>, and — through the
+        trigrams — to the sixty-four hexagrams. Drawn as chords and edge bundles, the same assertions
+        show their shape at three distances: the flows between groups, one source's table at a time,
+        and every individual value tied to its phase. At the centre of each circular diagram a taijitu
+        gauge reads the yin–yang proportion of whatever is selected — for trigrams and hexagrams the
+        proportion is exact, counted from their lines (yang lines over 3, resp. 6); for the phases the
+        values are schematic — Fire at peak yang (~90%), Water at peak yin (~10% yang), Wood rising
+        yang, Metal rising yin, Earth at balance (~50%) — and are labelled <i>schematic</i> wherever
+        they appear. At rest the gauge shows the balance of the whole displayed system.</p>
+      <nav class="tabbar" aria-label="Diagrams">
+        <div class="tabbar-inner" role="tablist" aria-label="Choose a diagram">
+          <button class="tab-btn" role="tab" id="tab-flows" aria-controls="flows" aria-selected="true" data-tab="flows" type="button">
+            <span class="tab-kicker">Diagram 1 · Directed chord</span>
+            <span class="tab-name">Flows</span>
+            <span class="tab-sub">Phases, flavours, seasons, creature classes, Luoshu &amp; trigrams</span>
+          </button>
+          <button class="tab-btn" role="tab" id="tab-tables" aria-controls="tables" aria-selected="false" tabindex="-1" data-tab="tables" type="button">
+            <span class="tab-kicker">Diagram 2 · Dependency chord</span>
+            <span class="tab-name">Schemes</span>
+            <span class="tab-sub">Nine correspondence tables as layers, disagreements outlined</span>
+          </button>
+          <button class="tab-btn" role="tab" id="tab-bundle" aria-controls="bundle" aria-selected="false" tabindex="-1" data-tab="bundle" type="button">
+            <span class="tab-kicker">Diagram 3 · Edge bundling &amp; rings</span>
+            <span class="tab-name">Bundling &amp; Rings</span>
+            <span class="tab-sub">Values to phases, Luoshu web, hexagrams in rings</span>
+          </button>
+          <button class="tab-btn" role="tab" id="tab-composition" aria-controls="composition" aria-selected="false" tabindex="-1" data-tab="composition" type="button">
+            <span class="tab-kicker">Diagram 4 · Composition chord</span>
+            <span class="tab-name">Composition</span>
+            <span class="tab-sub">8 trigrams × 8 — the 64 hexagrams as ribbons</span>
+          </button>
+        </div>
+      </nav>
+
+
+      <!-- ============ 1 · DIRECTED CHORD ============ -->
+      <section id="flows" class="tab-panel" role="tabpanel" aria-labelledby="tab-flows" data-panel="flows">
+        <h2>1 · Flows among phases, flavours, seasons and creature classes</h2>
+        <p class="sec-intro">The five phases, the five flavours, the five seasons and the five
+          creature classes （五蟲） — and, with the 洛書·八卦 layer on, the nine Luoshu positions and the eight
+          trigrams join the same circle, so a position's ribbons to its trigram and its phase, and a trigram's
+          ribbon to its phase, are drawn in the same view as the cycles. A ribbon runs from a node to what it produces, governs or is assigned to —
+          the generating cycle （相生） and controlling cycle （相剋） among the phases themselves; the
+          <i>Hongfan</i>'s flavour production (each phase's process makes a flavour); <i>Suwen</i> ch. 4's
+          phase–season assignments; the <i>Yueling</i>'s season–class assignments; and the classes' phase
+          membership as the <i>Yueling</i> commentary tradition states it. Ribbon width counts the kinds of
+          link between two nodes. Turn link kinds off to read one system at a time. Click a ribbon or a
+          node and the panel lists the assertions it aggregates — scheme, tier and source for each one;
+          nothing in the diagram is only a count.</p>
+        <div class="controls" id="flow-controls">
+          <span class="ctl-label">Links</span>
+          <div class="grp">
+            <label><input type="checkbox" data-kind="gen" checked> 相生 generating</label>
+            <label><input type="checkbox" data-kind="ctl" checked> 相剋 controlling</label>
+            <label><input type="checkbox" data-kind="flavour" checked> 洪範 flavour production</label>
+            <label><input type="checkbox" data-kind="season" checked> 素問 phase → season</label>
+            <label><input type="checkbox" data-kind="class" checked> 月令 season → class → phase</label>
+            <label><input type="checkbox" data-kind="luoshu" checked> 洛書 · 八卦 Luoshu positions &amp; trigrams</label>
+            <label><input type="checkbox" id="flow-isolate"> Isolate selection</label>
+            <label><input type="checkbox" data-overlay="gen"> Overlay: generating cycle arcs</label>
+            <label><input type="checkbox" data-overlay="ctl"> Overlay: controlling star</label>
+          </div>
+        </div>
+        <div class="layout">
+          <figure id="fig-flows"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-flows">
+            <h3>Reading the flows</h3>
+            <p class="sub">Hover a ribbon or an arc to isolate it. Click a node for its links, each with its source.</p>
+            <p class="src">Node colour follows the phase each node belongs to: flavours, seasons and classes
+              are coloured by the phase the schemes assign them to.</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ 2 · DEPENDENCY CHORD ============ -->
+      <section id="tables" class="tab-panel" role="tabpanel" aria-labelledby="tab-tables" data-panel="tables" hidden>
+        <h2>2 · The correspondence tables, one source at a time</h2>
+        <p class="sec-intro">Each source states its own table, and the tables do not all agree. All nine
+          correspondence schemes of the repository are layers here — the two partial ones （淮南子·精神，
+          a single passage; and the 月令's own attested cells) are marked partial, their missing cells
+          left empty rather than completed from another source. The sources
+          are layers: switch one off and every chord re-forms from the sources that remain. With several
+          layers on, a chord's width counts the sources asserting that family for that phase, and a chord
+          with a dark outline marks a cell where the sources disagree — the <i>Shize</i> animal row is
+          transposed against <i>Suwen</i> ch. 4 (spring takes the goat, summer the chicken), and its grain
+          row differs in three cells. Clicking any chord lists the exact assertions inside it, so a precise
+          question — what does the <i>Shize</i> say about spring's animal? — is answered by the rows
+          themselves, disagreements flagged and left unresolved.</p>
+        <div class="controls" id="layer-controls">
+          <span class="ctl-label">Layers</span>
+          <div class="grp">
+            <label><input type="checkbox" data-scheme="suwen4" checked> 素問 ch. 4 · 70 assertions</label>
+            <label><input type="checkbox" data-scheme="suwen5" checked> 素問 ch. 5 · 50 assertions</label>
+            <label><input type="checkbox" data-scheme="shize" checked> 淮南子·時則 · 65 assertions</label>
+            <label><input type="checkbox" data-scheme="tianwen" checked> 淮南子·天文 · 69 assertions</label>
+            <label><input type="checkbox" data-scheme="hongfan" checked> 尚書·洪範 · 10 assertions</label>
+            <label><input type="checkbox" data-scheme="lingshu" checked> 靈樞 ch. 56 · 35 assertions</label>
+            <label><input type="checkbox" data-scheme="dixing" checked> 淮南子·地形 · 30 assertions</label>
+            <label><input type="checkbox" data-scheme="jingshen" checked> 淮南子·精神 · 11 assertions · partial</label>
+            <label><input type="checkbox" data-scheme="yuelingc" checked> 禮記·月令 correspondences · 7 assertions · partial</label>
+          </div>
+        </div>
+        <div class="layout">
+          <figure id="fig-tables"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-tables">
+            <h3>素問 ch. 4 — 金匱真言論</h3>
+            <p class="sub">The five-direction table: 14 families × 5 phases. Hover a phase or a family to list its row.</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ 3 · EDGE BUNDLING ============ -->
+      <section id="bundle" class="tab-panel" role="tabpanel" aria-labelledby="tab-bundle" data-panel="bundle" hidden>
+        <h2>3 · Every value, bundled to its phase</h2>
+        <p class="sec-intro">Hierarchical edge bundling draws each leaf on a circle, grouped by family, and
+          routes its link through the hierarchy — links that share a path overlap into a bundle, so the
+          weight of a whole family reads at a glance. Four link sets share the circle: the <i>Suwen</i>
+          ch. 4 values tied to their phases; the <i>Yueling</i> creature classes with their members
+          (attested members, and members the class criterion predicts — frog and spider have no assertion
+          in the scheme and are absent, not filled in); and the eight trigrams tied to their phases in the
+          Later Heaven arrangement, with each trigram also joined to its opposite in the King Wen pairing.
+          Two trigrams, one above the other, compose a hexagram: 8 × 8 = 64, by composition rather than storage.
+          Every edge is one assertion: click an edge or a name to read it in the panel. <i>Ungroup</i> separates
+          the bundles into their individual edges; <i>isolate</i> keeps only the selected name's edges, drawn
+          separately; <i>zoom to selection</i> spreads a selection until its edges are individually clickable.
+          The <i>Luoshu web</i> sets the nine positions in the hierarchy with their edges to the trigrams placed
+          on them and to their phases — the centre position has no trigram, and draws no such edge. The
+          <i>Hexagrams</i> view changes the geometry itself: rings by derivation, phases at the core, the eight
+          trigrams in the next ring, and the sixty-four hexagrams on the rim, each inside its upper trigram's
+          sector — sector membership is the upper trigram, a short radial tie confirms it, and one edge runs to
+          the lower trigram. <i>Composed</i> shows the sixty-four as single six-line units; <i>Decomposed</i>
+          splits each glyph into its two stacked trigrams and lights both parent ties, folding the sixty-four
+          back into the eight.</p>
+        <div class="controls">
+          <span class="ctl-label">Links</span>
+          <div class="seg" id="bundle-seg" role="group" aria-label="Edge set">
+            <button data-mode="corr" aria-pressed="true">素問 values → phase</button>
+            <button data-mode="creatures" aria-pressed="false">月令 creature classes</button>
+            <button data-mode="trigrams" aria-pressed="false">八卦 trigrams</button>
+            <button data-mode="luoshu" aria-pressed="false">洛書 Luoshu web</button>
+            <button data-mode="hex" aria-pressed="false">六十四卦 Hexagrams — rings</button>
+          </div>
+          <span class="ctl-label">Hexagram state</span>
+          <div class="seg" id="hex-state" role="group" aria-label="Hexagram view state">
+            <button data-state="composed" aria-pressed="true">Composed</button>
+            <button data-state="decomposed" aria-pressed="false">Decomposed</button>
+          </div>
+          <label style="background:none;padding-left:2px">Bundle tension
+            <input type="range" id="tension" min="0" max="100" value="85" aria-label="Bundle tension">
+          </label>
+          <div class="grp">
+            <label><input type="checkbox" id="ungroup"> Ungroup bundles</label>
+            <label><input type="checkbox" id="isolate"> Isolate selection</label>
+            <label><input type="checkbox" id="bov-gen" checked> Overlay: generating arcs</label>
+            <label><input type="checkbox" id="bov-ctl" checked> Overlay: controlling star</label>
+          </div>
+          <div class="grp">
+            <button id="zoom-sel" type="button" style="min-height:36px;padding:6px 12px">Zoom to selection</button>
+            <button id="zoom-reset" type="button" style="min-height:36px;padding:6px 12px">Reset view</button>
+          </div>
+        </div>
+        <div class="layout">
+          <figure id="fig-bundle"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-bundle">
+            <h3>Reading the bundle</h3>
+            <p class="sub">Hover any name on the circle to trace its links. Click it for the assertion behind the link.</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ 4 · COMPOSITION CHORD ============ -->
+      <section id="composition" class="tab-panel" role="tabpanel" aria-labelledby="tab-composition" data-panel="composition" hidden>
+        <h2>4 · How the hexagrams are composed</h2>
+        <p class="sec-intro">Eight nodes only: the trigrams. A ribbon runs from an upper trigram to a lower
+          trigram, and there is exactly one hexagram for every ordered pair — the ribbon <i>is</i> that
+          hexagram, numbered and named in the King Wen sequence. Ribbons that loop back to their own node
+          are the eight pure hexagrams, one trigram doubled. Click a ribbon to see the hexagram it is,
+          drawn as its six lines; click a trigram for the sixteen hexagrams it takes part in — eight as
+          upper, eight as lower. The sixty-four are generated here by the 8 × 8 composition, not listed
+          as an inventory.</p>
+        <div class="layout">
+          <figure id="fig-comp"><div class="fallback">Loading diagram…</div></figure>
+          <aside class="inspector" id="insp-comp">
+            <h3>The 8 × 8 composition</h3>
+            <p class="sub">Hover a ribbon to isolate it. Click a ribbon for its hexagram; click an arc for a trigram's sixteen.</p>
+          </aside>
+        </div>
+      </section>
+
+      <footer>
+        <p>Sources, as held in the repository: 禮記·月令 and its commentary tradition (creature classes,
+          Gao You; Zheng Xuan's extension of the naked class to tigers and leopards is kept as a flagged,
+          separate assertion); 黃帝內經·素問 ch. 4 and ch. 5; 淮南子·時則， ·天文， ·地形， ·精神；
+          黃帝內經·靈樞 ch. 56; 尚書·洪範. The three diagram forms follow the D3 examples
+          <i>Hierarchical Edge Bundling</i>, <i>Directed Chord Diagram</i> and <i>Chord Dependency Diagram</i>
+          (Observable, @d3); the layouts here are drawn in plain JavaScript, with no library loaded.
+          The Luoshu 洛書 and Hetu 河圖 are held in the same repository as
+          diagram-schemes — arrangements of numbers and directions in their own right; the number rows in
+          the tables above （角 8, 徵 7, 宮 5, 商 9, 羽 6) are the phases' numbers as <i>Suwen</i> ch. 4
+          and the <i>Shize</i> state them, a separate scheme from the Luoshu's nine positions.</p>
+      </footer>
+    </main>
+    <div id="hover-card" hidden role="tooltip"></div>
+<script>
+"use strict";
+window.__spa = { inits:{}, done:{}, register:function(id, fn){ this.inits[id]=fn; }, ensure:function(id){ if(this.inits[id] && !this.done[id]){ this.done[id]=true; try{ this.inits[id](); }catch(e){ console.error(e); } } } };
+</script>
+<script>
+"use strict";
+/* ================= helpers ================= */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function txt(parent, str, attrs){ const t = el("text", attrs||{}, parent); t.textContent = str; return t; }
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function polar(r, a){ return [r*Math.cos(a - Math.PI/2), r*Math.sin(a - Math.PI/2)]; }
+function annulus(r0, r1, a0, a1){ const [x0,y0]=polar(r1,a0),[x1,y1]=polar(r1,a1),[x2,y2]=polar(r0,a1),[x3,y3]=polar(r0,a0);
+  const laf = (a1-a0) > Math.PI ? 1 : 0;
+  return "M"+x0+","+y0+" A"+r1+","+r1+" 0 "+laf+" 1 "+x1+","+y1+" L"+x2+","+y2+" A"+r0+","+r0+" 0 "+laf+" 0 "+x3+","+y3+" Z"; }
+function ribbonPath(r, s, t){ const [sx0,sy0]=polar(r,s.a0),[sx1,sy1]=polar(r,s.a1),[tx0,ty0]=polar(r,t.a0),[tx1,ty1]=polar(r,t.a1);
+  const lS = (s.a1-s.a0) > Math.PI ? 1 : 0, lT = (t.a1-t.a0) > Math.PI ? 1 : 0;
+  return "M"+sx0+","+sy0+" A"+r+","+r+" 0 "+lS+" 1 "+sx1+","+sy1+" Q0,0 "+tx1+","+ty1+
+         " A"+r+","+r+" 0 "+lT+" 1 "+tx0+","+ty0+" Q0,0 "+sx0+","+sy0+" Z"; }
+function labelTransform(a, r){ const deg = a*180/Math.PI - 90;
+  return { transform: "rotate("+deg+") translate("+r+",0)" + (a > Math.PI ? " rotate(180)" : ""),
+           anchor: a > Math.PI ? "end" : "start", x: a > Math.PI ? -6 : 6 }; }
+/* Chord layout. directed: group arc = out+in, subgroups = out-flows then in-flows.
+   symmetric: group arc = row sum, one chord per unordered pair. Returns {groups, chords}
+   where each chord has .s/.t subgroup spans {a0,a1}, .i/.j node indices, .value. */
+function chordLayout(matrix, pad, directed){
+  const n = matrix.length;
+  const row = matrix.map(r => r.reduce((a,b)=>a+b,0));
+  const col = matrix.map((r,i) => matrix.reduce((a,rr)=>a+rr[i],0));
+  const total = row.reduce((a,b)=>a+b,0) * (directed ? 2 : 1);
+  const k = total > 0 ? (2*Math.PI - pad*n) / total : 0;
+  const groups = [], subs = {}; let a = 0;
+  for (let i=0;i<n;i++){
+    const start = a, val = directed ? row[i]+col[i] : row[i];
+    const order = [...Array(n).keys()].sort((x,y)=> (directed ? (matrix[i][y]+(matrix[y]&&0)) : matrix[i][y]) - (directed ? matrix[i][x] : matrix[i][x]) || x-y);
+    if (directed){
+      order.sort((x,y)=> matrix[i][y]-matrix[i][x] || x-y);
+      for (const j of order){ if (matrix[i][j]>0){ subs[i+">"+j] = {a0:a, a1:a+matrix[i][j]*k}; a += matrix[i][j]*k; } }
+      const inOrder = [...Array(n).keys()].sort((x,y)=> matrix[y][i]-matrix[x][i] || x-y);
+      for (const j of inOrder){ if (matrix[j][i]>0){ subs[j+"<"+i] = {a0:a, a1:a+matrix[j][i]*k}; a += matrix[j][i]*k; } }
+    } else {
+      for (const j of order){ if (matrix[i][j]>0){ subs[i+">"+j] = {a0:a, a1:a+matrix[i][j]*k}; a += matrix[i][j]*k; } }
+    }
+    groups.push({a0:start, a1:a, value:val}); a += pad;
+  }
+  const chords = [];
+  if (directed){ for (let i=0;i<n;i++) for (let j=0;j<n;j++) if (matrix[i][j]>0)
+    chords.push({i, j, s:subs[i+">"+j], t:subs[i+"<"+j], value:matrix[i][j]}); }
+  else { for (let i=0;i<n;i++) for (let j=i;j<n;j++){ const v = matrix[i][j]+ (i===j?0:matrix[j][i]);
+    if (v>0) chords.push({i, j, s:subs[i+">"+j] || subs[j+">"+i], t: i===j ? subs[i+">"+j] : (subs[j+">"+i] || subs[i+">"+j]), value:v}); } }
+  return {groups, chords};
+}
+function recordsHTML(records, flagConflicts){
+  if (!records.length) return "<p class='src'>No assertions.</p>";
+  const objs = new Set(records.map(r=>r.norm));
+  const conflict = flagConflicts && objs.size > 1;
+  let h = "<ul>";
+  for (const r of records){
+    h += "<li><b>"+esc(r.subject)+"</b> · "+esc(r.relation)+" · <b>"+esc(r.object)+"</b>"+
+      (conflict ? " <span class='tag warn'>differs within this selection</span>" : "")+
+      "<br><span class='src'>"+esc(r.schemeLabel)+(r.tier?" · "+esc(r.tier):"")+" — "+esc(r.source)+"</span>"+
+      "<span class='explain'>"+recordSentence(r)+"</span></li>";
+  }
+  return h + "</ul>" + (conflict ? "<p class='src'>The sources disagree here. Both assertions stand; the scheme files keep them separate and nothing in this diagram resolves them.</p>" : "");
+}
+/* Normalised object key for cross-scheme comparison: the gloss after the first
+   space, so 麥/麦 and 鹹/咸 variants of one value compare equal. */
+function normObj(o){ const s = String(o); const i = s.indexOf(" ");
+  return (i>=0 ? s.slice(i+1) : s).replace(/\(.*?\)/g,"").trim().toLowerCase(); }
+
+/* ================= hover information + plain-language explanations =================
+   Every visual element in every diagram is bound via bindHover(): hovering shows
+   WHAT the element is and, for a link, the relation as an explained sentence with
+   its scheme and citation — never only a highlight. */
+const BRANCH_INFO = {"子":"zǐ, the 1st branch — north, mid-winter","丑":"chǒu, the 2nd branch — north-northeast",
+  "寅":"yín, the 3rd branch — east-northeast, early spring","卯":"mǎo, the 4th branch — east, mid-spring",
+  "辰":"chén, the 5th branch — east-southeast","巳":"sì, the 6th branch — south-southeast, early summer",
+  "午":"wǔ, the 7th branch — south, mid-summer","未":"wèi, the 8th branch — south-southwest, late summer",
+  "申":"shēn, the 9th branch — west-southwest, early autumn","酉":"yǒu, the 10th branch — west, mid-autumn",
+  "戌":"xū, the 11th branch — west-northwest","亥":"hài, the 12th branch — north-northwest, early winter"};
+function branchExplain(o){ const b = BRANCH_INFO[String(o).trim()]; return b ? "Earthly Branch "+o+" ("+b+")" : String(o); }
+const FAMILY_EXPLAIN = {
+  "born at":"a life-stage position: the Earthly Branch at which this phase's qi first arises ('is born') in the yearly cycle",
+  "flourishes at":"a life-stage position: the Earthly Branch at which this phase's qi reaches its peak",
+  "dies at":"a life-stage position: the Earthly Branch at which this phase's qi ends ('dies') in the yearly cycle",
+  "direction":"the cardinal direction assigned to this phase","season":"the season assigned to this phase",
+  "colour":"the colour assigned to this phase","organ":"the organ (zang) assigned to this phase",
+  "orifice":"the sense opening through which this phase/organ is said to manifest",
+  "flavour":"the taste assigned to this phase","flavour produced":"the taste this phase's process is said to produce",
+  "process":"what this phase does, in the Hongfan's own wording","animal":"the domestic animal assigned to this phase/season",
+  "grain":"the grain assigned to this phase/season","planet":"the visible planet assigned to this phase",
+  "tone":"the pitch-pipe tone assigned to this phase","number":"the number assigned to this phase",
+  "tissue":"the body tissue assigned to this phase","smell":"the odour assigned to this phase/season",
+  "climate":"the weather/climate assigned to this phase","voice":"the vocal sound assigned to this phase",
+  "change":"the bodily change assigned to this phase","emotion":"the emotion assigned to this phase",
+  "thearch":"the legendary ruler (thearch) presiding over this direction","assistant":"the deity who assists this direction's thearch",
+  "implement":"the measuring instrument carried for this direction","governance":"what this thearch is said to govern",
+  "creature":"the mythic creature of this direction","creature class":"the class of creatures assigned here",
+  "stem days":"the pair of Heavenly Stems assigned here","stems & branches":"the Heavenly Stems and Earthly Branches assigned to this phase",
+  "sacrifice":"the household sacrifice offered in this season","first offered organ":"the organ first offered in this season's sacrifice",
+  "weapon":"the weapon assigned to this season","fruit":"the fruit assigned to this flavour/phase",
+  "livestock":"the domestic animal assigned to this flavour/phase","vegetable":"the vegetable assigned to this flavour/phase",
+  "fauna":"the wild animals assigned to this direction","suitable flavour":"the flavour this text says suits this colour/phase",
+  "prohibited flavour":"the flavour this text prohibits for this organ in disease",
+  "yin-yang of the class":"whether this creature class is classed yin or yang",
+  "weather":"the weather phenomenon assigned to this organ","role":"the role this text gives this organ",
+  "centre placement":"where this scheme places the centre in the year"};
+function familyExplain(f){ return FAMILY_EXPLAIN[f] || ("the "+f+" assigned in this table"); }
+function recordSentence(r){
+  if (!r) return "";
+  const S = esc(r.subject), O = esc(r.object), sch = esc(r.schemeLabel);
+  if (r.relation === "born at") return "<b>"+S+"</b> is <b>born at "+O+"</b>: in "+sch+", this phase's qi first arises when the yearly cycle reaches the "+esc(branchExplain(r.object))+". The branch is a position in the 12-branch cycle (a direction and season-point), not a creature or a place.";
+  if (r.relation === "flourishes at") return "<b>"+S+"</b> <b>flourishes at "+O+"</b>: in "+sch+", this phase's qi reaches its peak when the cycle reaches the "+esc(branchExplain(r.object))+" — a position in the 12-branch cycle.";
+  if (r.relation === "dies at") return "<b>"+S+"</b> <b>dies at "+O+"</b>: in "+sch+", this phase's qi ends when the cycle reaches the "+esc(branchExplain(r.object))+" — a position in the 12-branch cycle.";
+  if (r.relation.indexOf("generates") === 0) return "<b>"+S+" generates "+O+"</b> — in the generating cycle (相生 sheng), "+S+" nourishes and produces "+O+".";
+  if (r.relation.indexOf("controls") === 0) return "<b>"+S+" controls "+O+"</b> — in the controlling cycle (相剋 ke), "+S+" restrains and checks "+O+".";
+  if (r.relation === "phase") return "In "+sch+", <b>"+S+"</b> is assigned to the phase <b>"+O+"</b>.";
+  if (r.relation === "season") return "In "+sch+", <b>"+S+"</b> belongs to the season <b>"+O+"</b>.";
+  if (r.relation === "element") return "In "+sch+", <b>"+S+"</b> is a class of the phase <b>"+O+"</b> — its members are counted as "+O+" creatures.";
+  if (r.relation === "member of") return "<b>"+S+"</b> is classed as a member of <b>"+O+"</b> in "+sch+" — membership follows the class's criterion (its body covering).";
+  if (r.relation === "chief" || r.relation === "essence") return "<b>"+O+"</b> is the "+r.relation+" of <b>"+S+"</b> in "+sch+" — the exemplary creature at the head of the class.";
+  if (r.relation.indexOf("trigram placed") === 0) return "At <b>"+S+"</b>, the trigram placed there is <b>"+O+"</b>: in the Later Heaven arrangement set on the Luoshu grid, that trigram occupies this position and direction.";
+  if (r.relation.indexOf("phase of this position") === 0) return "<b>"+S+"</b> has the phase <b>"+O+"</b> — the phase of its direction, per the direction rows of the correspondence tables.";
+  if (r.relation.indexOf("phase (Later Heaven)") === 0 || (r.scheme === "later-heaven")) return "In the Later Heaven arrangement, the trigram <b>"+S+"</b> belongs to the phase <b>"+O+"</b>.";
+  if (r.relation.indexOf("opposite") === 0) return "<b>"+S+"</b> is paired opposite <b>"+O+"</b> in the King Wen pairing of the trigrams.";
+  if (r.relation === "composes") return "<b>"+S+"</b> composes <b>"+O+"</b> — a hexagram is its upper trigram set above its lower trigram.";
+  if (r.family && FAMILY_EXPLAIN[r.relation] !== undefined || ["direction","season","colour","organ","orifice","flavour","animal","grain","planet","tone","number","tissue","smell","climate","voice","change","emotion","thearch","assistant","implement","governance","creature","creature class","stem days","sacrifice","first offered organ","weapon","fruit","livestock","vegetable","fauna","process","flavour produced"].includes(r.relation))
+    return "In "+sch+", the <b>"+esc(r.relation)+"</b> of <b>"+S+"</b> is <b>"+O+"</b> — "+esc(familyExplain(r.relation))+".";
+  return "In "+sch+": <b>"+S+"</b> — "+esc(r.relation)+" — <b>"+O+"</b>.";
+}
+function recordMeta(r){ return esc(r.schemeLabel)+(r.tier ? " · "+esc(r.tier) : "")+" — "+esc(r.source); }
+const hoverCard = () => document.getElementById("hover-card");
+function showHover(html, ev){
+  const c = hoverCard(); if (!c) return;
+  c.innerHTML = html; c.hidden = false; moveHover(ev);
+}
+function moveHover(ev){
+  const c = hoverCard(); if (!c || c.hidden || !ev) return;
+  const w = c.offsetWidth, h = c.offsetHeight, pad = 10;
+  let x = ev.clientX + 16, y = ev.clientY + 16;
+  if (x + w > window.innerWidth - pad) x = Math.max(pad, ev.clientX - w - 12);
+  if (y + h > window.innerHeight - pad) y = Math.max(pad, ev.clientY - h - 12);
+  c.style.left = x + "px"; c.style.top = y + "px";
+}
+function hideHover(){ const c = hoverCard(); if (c) c.hidden = true; }
+function bindHover(elm, getHTML){
+  if (!elm || !getHTML) return;
+  elm.addEventListener("mouseover", e => { const h = getHTML(); if (h) showHover(h, e); });
+  elm.addEventListener("mousemove", moveHover);
+  elm.addEventListener("mouseout", hideHover);
+}
+function hoverRecordsHTML(title, records, intro){
+  let h = "<h4>"+esc(title)+"</h4>";
+  if (intro) h += "<p>"+intro+"</p>";
+  records.forEach(r => { if (!r) return;
+    h += "<p>"+recordSentence(r)+"</p><p class='hc-meta'>"+recordMeta(r)+"</p>"; });
+  return h;
+}
+
+
+/* ================= data, transcribed from the schemes in ansci-knowledge ================= */
+const PHASES = ["Wood","Fire","Earth","Metal","Water"];
+const PHASE_HZ = {Wood:"木", Fire:"火", Earth:"土", Metal:"金", Water:"水"};
+const PCOL = {Wood:"#3d8b57", Fire:"#c0392b", Earth:"#b8860b", Metal:"#7d8590", Water:"#2f5f9e"};
+const GEN = [["Wood","Fire"],["Fire","Earth"],["Earth","Metal"],["Metal","Water"],["Water","Wood"]];
+const CTL = [["Wood","Earth"],["Earth","Water"],["Water","Fire"],["Fire","Metal"],["Metal","Wood"]];
+const SUWEN = { name:"素問 ch. 4 — 金匱真言論 (Jin Gui Zhen Yan Lun)", keying:"Keyed by direction in the chapter; shown by phase.",
+  families:[
+    ["direction",["东方 east","南方 south","中央 centre","西方 west","北方 north"]],
+    ["season",["spring","summer","长夏 late summer","autumn","winter"]],
+    ["colour",["青 azure","赤 red","黄 yellow","白 white","黑 black"]],
+    ["organ",["肝 liver","心 heart","脾 spleen","肺 lungs","肾 kidneys"]],
+    ["orifice",["目 eyes","耳 ear","口 mouth","鼻 nose","二阴 two lower orifices"]],
+    ["flavour",["酸 sour","苦 bitter","甘 sweet","辛 pungent","咸 salty"]],
+    ["class",["草木 plants","火 fire","土 earth","金 metal","水 water"]],
+    ["animal",["鸡 chicken","羊 goat","牛 cattle","马 horse","彘 pig"]],
+    ["grain",["麦 wheat","黍 millet","稷 millet (jì)","稻 rice","豆 beans"]],
+    ["planet",["岁星 Jupiter","荧惑 Mars","镇星 Saturn","太白 Venus","辰星 Mercury"]],
+    ["tone",["角 jue","徵 zhi","宮 gong","商 shang","羽 yu"]],
+    ["number",["8","7","5","9","6"]],
+    ["tissue",["筋 sinews","脉 vessels","肉 flesh","皮毛 skin & hair","骨 bone"]],
+    ["smell",["臊 rank","焦 scorched","香 fragrant","腥 fishy","腐 rotten"]] ]};
+const SHIZE = { name:"淮南子·時則 (Shize)", keying:"Keyed by season in the source; shown under the season's phase.",
+  seasons:["spring","summer","centre （季夏）","autumn","winter"],
+  families:[
+    ["direction",["东方 east","南方 south","中央 centre","西方 west","北方 north"]],
+    ["stem days",["甲乙","丙丁","戊己","庚辛","壬癸"]],
+    ["creature class",["鱗 scaled","羽 feathered","蠃 naked","毛 furred","介 shelled"]],
+    ["tone",["角 jue","徵 zhi","宮 gong","商 shang","羽 yu"]],
+    ["number",["8","7","5","9","6"]],
+    ["flavour",["酸 sour","苦 bitter","甘 sweet","辛 pungent","鹹 salty"]],
+    ["smell",["羶 rank","焦 scorched","香 fragrant","腥 fishy","腐 rotten"]],
+    ["sacrifice",["戶 door","竈 hearth","中霤 centre of the house","門 gate","井 well"]],
+    ["first offered organ",["脾 spleen","胏 lungs","心 heart","肝 liver","腎 kidneys"]],
+    ["grain",["麥 wheat","菽 beans","稷 millet","麻 hemp","黍 millet"]],
+    ["animal",["羊 goat","雞 chicken","牛 cattle","犬 dog","彘 pig"]],
+    ["weapon",["矛 spear","戟 halberd","劍 sword","戈 dagger-axe","鎩 long spear"]] ]};
+const HONGFAN = { name:"尚書·洪範 (Hongfan, the Great Plan)", keying:"The passage defines what each phase does, and the flavour its process produces.",
+  families:[
+    ["process",["曲直 — bending and straightening","炎上 — flaming and ascending","稼穑 — sowing and harvesting","从革 — following and transforming","润下 — moistening and descending"]],
+    ["flavour produced",["酸 sour","苦 bitter","甘 sweet","辛 pungent","咸 salty"]] ]};
+const CLASSES = [
+  {id:"scaled", hz:"鱗", name:"scaled", phase:"Wood", season:"spring", criterion:"body covered in scales",
+   members:[["fish","attested"],["snakes","attested"],["insects","predicted"],["bee","predicted"],["silkworm","predicted"]],
+   head:["dragon 龍","chief · attested"]},
+  {id:"feathered", hz:"羽", name:"feathered", phase:"Fire", season:"summer", criterion:"body covered in feathers",
+   members:[["birds","attested"]], head:["phoenix 鳳","essence · attested"]},
+  {id:"naked", hz:"倮", name:"naked", phase:"Earth", season:"centre", criterion:"bare skin — no covering grown over it; fine hair is not a covering",
+   members:[["humans","attested"],["octopus","predicted"],["squid","predicted"],["sea cucumber","predicted"],["toad","predicted"],["frog","predicted"],["leech","predicted"],["tigers and leopards","contested"]],
+   head:["the human","chief · attested"]},
+  {id:"furred", hz:"毛", name:"furred", phase:"Metal", season:"autumn", criterion:"body covered in fur — a coat, not fine hair",
+   members:[["furred mammals","attested"]], head:["tiger 虎","chief · attested (Gao You)"]},
+  {id:"shelled", hz:"介", name:"shelled", phase:"Water", season:"winter", criterion:"body enclosed in shell or armour",
+   members:[["turtles","attested"],["crabs","attested"]], head:["tortoise 龜","chief · attested"]}
+];
+const TRIGRAMS = [
+  {name:"Qian", hz:"乾", sym:"☰", nature:"天 heaven", lines:[1,1,1], phase:"Metal", dir:"northwest"},
+  {name:"Dui",  hz:"兌", sym:"☱", nature:"澤 lake",   lines:[1,1,0], phase:"Metal", dir:"west"},
+  {name:"Li",   hz:"離", sym:"☲", nature:"火 fire",   lines:[1,0,1], phase:"Fire",  dir:"south"},
+  {name:"Zhen", hz:"震", sym:"☳", nature:"雷 thunder",lines:[1,0,0], phase:"Wood",  dir:"east"},
+  {name:"Xun",  hz:"巽", sym:"☴", nature:"風 wind",   lines:[0,1,1], phase:"Wood",  dir:"southeast"},
+  {name:"Kan",  hz:"坎", sym:"☵", nature:"水 water",  lines:[0,1,0], phase:"Water", dir:"north"},
+  {name:"Gen",  hz:"艮", sym:"☶", nature:"山 mountain",lines:[0,0,1], phase:"Earth", dir:"northeast"},
+  {name:"Kun",  hz:"坤", sym:"☷", nature:"地 earth",  lines:[0,0,0], phase:"Earth", dir:"southwest"}
+];
+const OPPOSITES = [["Qian","Kun"],["Kan","Li"],["Zhen","Xun"],["Gen","Dui"]];
+/* The Luoshu's nine positions with the Later Heaven placement: each outer position
+   carries a trigram and a direction; the centre (5) carries no trigram. Phase follows
+   the direction, per the direction rows of the correspondence tables. */
+const LUOSHU = [
+  {n:1, dir:"north",     trigram:"Kan",  phase:"Water"},
+  {n:8, dir:"northeast", trigram:"Gen",  phase:"Earth"},
+  {n:3, dir:"east",      trigram:"Zhen", phase:"Wood"},
+  {n:4, dir:"southeast", trigram:"Xun",  phase:"Wood"},
+  {n:9, dir:"south",     trigram:"Li",   phase:"Fire"},
+  {n:2, dir:"southwest", trigram:"Kun",  phase:"Earth"},
+  {n:7, dir:"west",      trigram:"Dui",  phase:"Metal"},
+  {n:6, dir:"northwest", trigram:"Qian", phase:"Metal"},
+  {n:5, dir:"centre",    trigram:null,   phase:"Earth"}
+];
+
+/* The 64 hexagrams, generated by the 8 × 8 composition. KW_TABLE[upper][lower in
+   KW_ORDER] = [King Wen number, name] — the standard upper×lower grid. */
+const KW_ORDER = ["Qian","Dui","Li","Zhen","Xun","Kan","Gen","Kun"];
+const KW_TABLE = {
+  Qian:[[1,"乾"],[10,"履"],[13,"同人"],[25,"无妄"],[44,"姤"],[6,"訟"],[33,"遯"],[12,"否"]],
+  Dui:[[43,"夬"],[58,"兌"],[49,"革"],[17,"隨"],[28,"大過"],[47,"困"],[31,"咸"],[45,"萃"]],
+  Li:[[14,"大有"],[38,"睽"],[30,"離"],[21,"噬嗑"],[50,"鼎"],[64,"未濟"],[56,"旅"],[35,"晉"]],
+  Zhen:[[34,"大壯"],[54,"歸妹"],[55,"豐"],[51,"震"],[32,"恆"],[40,"解"],[62,"小過"],[16,"豫"]],
+  Xun:[[9,"小畜"],[61,"中孚"],[37,"家人"],[42,"益"],[57,"巽"],[59,"渙"],[53,"漸"],[20,"觀"]],
+  Kan:[[5,"需"],[60,"節"],[63,"既濟"],[3,"屯"],[48,"井"],[29,"坎"],[39,"蹇"],[8,"比"]],
+  Gen:[[26,"大畜"],[41,"損"],[22,"賁"],[27,"頤"],[18,"蠱"],[4,"蒙"],[52,"艮"],[23,"剝"]],
+  Kun:[[11,"泰"],[19,"臨"],[36,"明夷"],[24,"復"],[46,"升"],[7,"師"],[15,"謙"],[2,"坤"]]
+};
+const HEXAGRAMS = [];
+KW_ORDER.forEach(u => KW_TABLE[u].forEach(([num, nm], li) => {
+  const U = TRIGRAMS.find(t=>t.name===u), L = TRIGRAMS.find(t=>t.name===KW_ORDER[li]);
+  HEXAGRAMS.push({n:num, name:nm, upper:u, lower:KW_ORDER[li],
+    sym:String.fromCodePoint(0x4DC0+num-1),
+    linesTop:[U.lines[2],U.lines[1],U.lines[0],L.lines[2],L.lines[1],L.lines[0]]});
+}));
+HEXAGRAMS.sort((a,b)=>a.n-b.n);
+const hexByPair = (u,l) => HEXAGRAMS.find(h=>h.upper===u && h.lower===l);
+/* Six-line glyph as inline SVG; split=true separates the two parent trigrams. */
+function glyphSVG(h, split){
+  const W=56, lh=5, gap=3, extra = split?9:2, H = 6*lh + 5*gap + extra;
+  let s = "<svg width='"+(split?118:W)+"' height='"+H+"' viewBox='0 0 "+(split?118:W)+" "+H+"' role='img' aria-label='Hexagram "+h.n+" glyph'>";
+  h.linesTop.forEach((v,i)=>{ const y = i*(lh+gap) + (i>=3?extra:0);
+    if (v) s += "<rect x='0' y='"+y+"' width='"+W+"' height='"+lh+"' fill='currentColor'/>";
+    else s += "<rect x='0' y='"+y+"' width='25' height='"+lh+"' fill='currentColor'/><rect x='31' y='"+y+"' width='25' height='"+lh+"' fill='currentColor'/>"; });
+  if (split){ const U=TRIGRAMS.find(t=>t.name===h.upper), L=TRIGRAMS.find(t=>t.name===h.lower);
+    s += "<text x='64' y='14' font-size='10' fill='currentColor'>upper "+U.hz+" "+U.name+"</text>"+
+         "<text x='64' y='"+(H-2)+"' font-size='10' fill='currentColor'>lower "+L.hz+" "+L.name+"</text>"; }
+  return s + "</svg>";
+}
+function hexRecord(h){
+  const U=TRIGRAMS.find(t=>t.name===h.upper), L=TRIGRAMS.find(t=>t.name===h.lower);
+  return {scheme:"composition", schemeLabel:"composition of the trigrams", subject:U.hz+" "+U.name+" over "+L.hz+" "+L.name,
+    relation:"composes", object:"Hexagram "+h.n+" · "+h.name, tier:"derived — 8 × 8 composition",
+    source:"King Wen sequence, no. "+h.n, phase:null, family:"hexagram", norm:""};
+}
+
+/* ================= the assertion store =================
+   Every ribbon, arc and edge below is bound to records from this store:
+   {scheme, schemeLabel, subject, relation, object, tier, source, phase, family, norm} */
+const RECORDS = [];
+function addRec(scheme, schemeLabel, subject, relation, object, tier, source, phase, family){
+  RECORDS.push({scheme, schemeLabel, subject, relation, object, tier, source,
+    phase: phase||null, family: family||relation, norm: normObj(object)});
+}
+SUWEN.families.forEach(([fam, vals]) => vals.forEach((v,i) =>
+  addRec("suwen4","素問 ch. 4", PHASES[i]+" "+PHASE_HZ[PHASES[i]], fam, v, "attested", "素問 ch. 4 · 金匱真言論", PHASES[i], fam)));
+SHIZE.families.forEach(([fam, vals]) => vals.forEach((v,i) =>
+  addRec("shize","淮南子·時則", SHIZE.seasons[i], fam, v, "attested", "淮南子·時則訓", PHASES[i], fam)));
+SHIZE.seasons.forEach((s,i) =>
+  addRec("shize","淮南子·時則", s, "phase", PHASES[i]+" "+PHASE_HZ[PHASES[i]], "attested", "淮南子·時則訓", PHASES[i], "phase"));
+HONGFAN.families.forEach(([fam, vals]) => vals.forEach((v,i) =>
+  addRec("hongfan","尚書·洪範", PHASES[i]+" "+PHASE_HZ[PHASES[i]], fam, v, "attested", "尚書·洪範", PHASES[i], fam==="flavour produced" ? "flavour" : fam)));
+CLASSES.forEach(c => {
+  const cn = c.hz+" "+c.name;
+  addRec("yueling","禮記·月令", cn, "season", c.season, "attested", "禮記·月令 — 其蟲"+c.hz, c.phase, "creature class");
+  addRec("yueling","月令 commentary tradition", cn, "element", c.phase, "derived", "月令 commentary tradition — "+c.hz+"蟲"+PHASE_HZ[c.phase]+"之屬", c.phase, "creature class");
+  addRec("yueling","禮記·月令", cn, c.head[1].indexOf("essence")===0 ? "essence" : "chief", c.head[0], "attested", "禮記·月令 scheme — CREATURE_CLASS_YUELING_V1", c.phase, "creature class");
+  c.members.forEach(([m,tier]) =>
+    addRec("yueling","禮記·月令 scheme", m, "member of", cn, tier,
+      tier==="contested" ? "Zheng Xuan's reading, kept as a flagged separate assertion (CREATURE_CLASS_YUELING_V1)"
+        : "CREATURE_CLASS_YUELING_V1", c.phase, "creature class"));
+});
+GEN.forEach(([a,b]) => addRec("cycles","Wuxing cycles", a, "generates （相生）", b, "", "the generating cycle of the five phases", b, "cycle"));
+CTL.forEach(([a,b]) => addRec("cycles","Wuxing cycles", a, "controls （相剋）", b, "", "the controlling cycle of the five phases", b, "cycle"));
+TRIGRAMS.forEach(t => addRec("later-heaven","Later Heaven arrangement", t.hz+" "+t.name, "phase",
+  t.phase+" "+PHASE_HZ[t.phase], "arrangement", "Later Heaven (King Wen) arrangement — placed "+t.dir, t.phase, "trigram"));
+LUOSHU.forEach(p => { const tn = p.trigram ? TRIGRAMS.find(t=>t.name===p.trigram) : null;
+  const subj = "Luoshu "+p.n+" · "+p.dir;
+  if (tn) addRec("luoshu","洛書 · Later Heaven placement", subj, "trigram placed at this position",
+    tn.hz+" "+tn.name, "arrangement", "the Later Heaven arrangement set on the Luoshu grid (position "+p.n+", "+p.dir+")", p.phase, "luoshu");
+  addRec("luoshu","洛書 · direction and phase", subj, "phase of this position",
+    p.phase+" "+PHASE_HZ[p.phase], p.n===5 ? "attested" : "derived",
+    p.n===5 ? "the centre is Earth's in the direction rows （素問 ch. 4: 中央 centre — 土 Earth)"
+            : "the position's direction ("+p.dir+") with the direction–phase correspondence of the tables （素問 ch. 4 direction row)",
+    p.phase, "luoshu");
+});
+
+/* ---- the remaining correspondence schemes, transcribed from their scheme files ---- */
+function addTable(scheme, label, source, families, subjects){
+  families.forEach(([fam, vals]) => vals.forEach((v,i) => {
+    if (v != null) addRec(scheme, label, subjects[i], fam, v, "attested", source, PHASES[i], fam);
+  }));
+}
+addTable("suwen5","素問 ch. 5","素問 ch. 5 · 陰陽應象大論", [
+  ["climate",["风 wind","热 heat","湿 damp","燥 dryness","寒 cold"]],
+  ["tissue",["筋 sinews","脉 vessels","肉 flesh","皮毛 skin & hair","骨 bone"]],
+  ["organ",["肝 liver","心 heart","脾 spleen","肺 lungs","肾 kidneys"]],
+  ["colour",["苍 dark green","赤 red","黄 yellow","白 white","黑 black"]],
+  ["tone",["角 jue","徵 zhi","宮 gong","商 shang","羽 yu"]],
+  ["voice",["呼 shouting","笑 laughing","歌 singing","哭 weeping","呻 groaning"]],
+  ["change",["握 grasping","忧 trembling speech (older sense of 忧 — halting, trembling speech; not the west's sorrow)","哕 retching","咳 coughing","栗 shivering"]],
+  ["orifice",["目 eyes","舌 tongue","口 mouth","鼻 nose","耳 ear"]],
+  ["flavour",["酸 sour","苦 bitter","甘 sweet","辛 pungent","咸 salty"]],
+  ["emotion",["怒 anger","喜 joy","思 thought","忧 sorrow/worry","恐 fear"]]
+], PHASES.map(p=>p+" "+PHASE_HZ[p]));
+addTable("tianwen","淮南子·天文","淮南子·天文訓", [
+  ["thearch",["太皞 Taihao","炎帝 Yan Di","黃帝 Huang Di","少昊 Shaohao","顓頊 Zhuanxu"]],
+  ["assistant",["句芒 Goumang","朱明 Zhuming","后土 Houtu","蓐收 Rushou","玄冥 Xuanming"]],
+  ["implement",["規 compass","衡 balance","繩 plumb-line","矩 square","權 weight"]],
+  ["governance",["治春 — governs spring","治夏 — governs summer","制四方 — governs the four quarters (no season in this passage)","治秋 — governs autumn","治冬 — governs winter"]],
+  ["planet",["歲星 Jupiter","熒惑 Mars","鎮星 Saturn","太白 Venus","辰星 Mercury"]],
+  ["creature",["蒼龍 azure dragon","朱鳥 vermilion bird","黃龍 yellow dragon","白虎 white tiger","玄武 dark warrior"]],
+  ["tone",["角 jue","徵 zhi","宮 gong","商 shang","羽 yu"]],
+  ["stem days",["甲乙","丙丁","戊己","庚辛","壬癸"]]
+], ["东方 east","南方 south","中央 centre","西方 west","北方 north"]);
+[["东方 east","Wood"],["南方 south","Fire"],["中央 centre","Earth"],["西方 west","Metal"],["北方 north","Water"]].forEach(([subj, ph]) =>
+  addRec("tianwen","淮南子·天文", subj, "phase", ph+" "+PHASE_HZ[ph], "attested", "淮南子·天文訓", ph, "phase"));
+[["甲乙 stems · 寅卯 branches","Wood"],["丙丁 stems · 巳午 branches","Fire"],
+ ["戊己 stems · 四季 season-ends (the four earth branches 辰戌丑未 are not named, as written)","Earth"],
+ ["庚辛 stems · 申酉 branches","Metal"],["壬癸 stems · 亥子 branches","Water"]].forEach(([obj, ph]) =>
+  addRec("tianwen","淮南子·天文", ph+" "+PHASE_HZ[ph], "stems & branches", obj, "attested", "淮南子·天文訓", ph, "stems & branches"));
+addTable("tianwen","淮南子·天文","淮南子·天文訓 — the life-stage triads", [
+  ["born at",["亥","寅","午","巳","申"]],
+  ["flourishes at",["卯","午","戌","酉","子"]],
+  ["dies at",["未","戌","寅","丑","辰"]]
+], PHASES.map(p=>p+" "+PHASE_HZ[p]));
+[["毛 furred","Metal","yang"],["羽 feathered","Fire","yang"],["介 shelled","Water","yin"],["鱗 scaled","Wood","yin"]].forEach(([subj, ph, yy]) =>
+  addRec("tianwen","淮南子·天文", subj, "yin-yang of the class", yy, "attested", "淮南子·天文訓", ph, "yin-yang of the class"));
+addTable("lingshu","靈樞 ch. 56","靈樞 ch. 56 · 五味", [
+  ["organ",["肝 liver","心 heart","脾 spleen","肺 lungs","肾 kidneys"]],
+  ["grain",["麻 hemp/sesame (gloss UNCERTAIN in the record, section 4)","麦 wheat","秔米 rice","黄黍 yellow millet","大豆 soybean"]],
+  ["fruit",["李 plum","杏 apricot","枣 date","桃 peach","栗 chestnut"]],
+  ["livestock",["犬 dog","羊 goat","牛 cattle","鸡 chicken","猪 pig"]],
+  ["vegetable",["韭 chives","薤 rakkyo","葵 mallow","葱 scallion","藿 bean leaves"]]
+], ["酸 sour","苦 bitter","甘 sweet","辛 pungent","咸 salty"]);
+[["青色 green","酸 sour","Wood"],["赤色 red","苦 bitter","Fire"],["黄色 yellow","甘 sweet","Earth"],
+ ["白色 white","辛 pungent","Metal"],["黑色 black","咸 salty","Water"]].forEach(([subj, obj, ph]) =>
+  addRec("lingshu","靈樞 ch. 56", subj, "suitable flavour", obj, "attested", "靈樞 ch. 56 · 五味", ph, "suitable flavour"));
+[["liver 肝 (in disease)","辛 pungent","Wood"],["heart 心 (in disease)","咸 salty","Fire"],
+ ["spleen 脾 (in disease)","酸 sour","Earth"],["lungs 肺 (in disease)","苦 bitter","Metal"],
+ ["kidneys 肾 (in disease)","甘 sweet","Water"]].forEach(([subj, obj, ph]) =>
+  addRec("lingshu","靈樞 ch. 56", subj, "prohibited flavour", obj, "attested", "靈樞 ch. 56 · 五味 — the five prohibitions", ph, "prohibited flavour"));
+addTable("dixing","淮南子·地形","淮南子·地形訓", [
+  ["orifice",["目 eyes","耳 ear","口 mouth","鼻 nose","陰 the lower orifice"]],
+  ["tissue",["筋氣 sinews","血脈 vessels","膚肉 flesh","皮革 skin","骨幹 bone"]],
+  ["colour",["蒼 dark green","赤 red","黃 yellow","白 white","黑 black"]],
+  ["organ",["肝 liver","心 heart","胃 stomach","肺 lungs","腎 kidneys"]],
+  ["grain",["麥 wheat","稻 rice","禾 grain","黍 millet","菽 beans"]],
+  ["fauna",["虎豹 tigers & leopards","兕象 rhinos & elephants","牛羊 cattle & goats","旄犀 yaks & rhinos","犬馬 dogs & horses"]]
+], ["east","south","centre","west","north"]);
+[["肝 liver","orifice","耳 ear","Wood"],["肺 lungs","orifice","目 eyes","Metal"],["腎 kidneys","orifice","鼻 nose","Water"],
+ ["脾 spleen","orifice","舌 tongue","Earth"],["膽 gallbladder","orifice","口 mouth",null],
+ ["肝 liver","weather","風 wind","Wood"],["肺 lungs","weather","氣 qi/breath","Metal"],["腎 kidneys","weather","雨 rain","Water"],
+ ["脾 spleen","weather","雷 thunder","Earth"],["膽 gallbladder","weather","雲 clouds",null],
+ ["心 heart","role","ruler — 心為之主 (the heart is the ruler)","Fire"]].forEach(([subj, rel, obj, ph]) =>
+  addRec("jingshen","淮南子·精神", subj, rel, obj, "attested", "淮南子·精神訓 — one passage; the scheme file marks it partial, passage-level verification only", ph, rel));
+[["spring","羊 goat"],["summer","雞 chicken"],["centre","牛 cattle"],["autumn","犬 dog"],["winter","彘 pig"]].forEach(([subj, obj], i) =>
+  addRec("yuelingc","禮記·月令", subj, "animal", obj, "attested", "禮記·月令 — the cells the record attests for the Yueling itself", PHASES[i], "animal"));
+addRec("yuelingc","禮記·月令", "spring", "smell", "羶 rank", "attested", "禮記·月令 — attested cells only", "Wood", "smell");
+addRec("yuelingc","禮記·月令", "centre", "centre placement", "季夏 — the last summer month", "attested", "禮記·月令 — attested cells only", "Earth", "centre placement");
+
+/* ================= yin–yang proportions =================
+   Trigrams and hexagrams: EXACT, counted from their lines. Phases: the owner's
+   SCHEMATIC values, labelled schematic wherever they appear. */
+const PHASE_YY = { Wood:{yang:0.65, note:"rising yang"}, Fire:{yang:0.90, note:"peak yang"},
+  Earth:{yang:0.50, note:"balance"}, Metal:{yang:0.35, note:"rising yin"}, Water:{yang:0.10, note:"peak yin"} };
+const triYang = t => t.lines.reduce((a,b)=>a+b,0)/3;
+const hexYang = h => h.linesTop.reduce((a,b)=>a+b,0)/6;
+function yyBarHTML(frac, kind){
+  const pct = Math.round(frac*100), w = 64;
+  return "<span style='display:inline-flex;align-items:center;gap:7px;vertical-align:-3px'>"+
+    "<svg width='"+w+"' height='9' viewBox='0 0 "+w+" 9' aria-hidden='true'>"+
+    "<rect x='0' y='0' width='"+w+"' height='9' fill='#cfc6ae'/>"+
+    "<rect x='0' y='0' width='"+(w*frac)+"' height='9' fill='#26221a'/></svg>"+
+    "<span>"+pct+"% yang · "+esc(kind)+"</span></span>";
+}
+/* Taijitu centre gauge: fixed black/white medallion, a proportion ring for the
+   yang fraction, rotation tilting with imbalance, % label beneath. Returns update(frac). */
+function taijitu(parent, r, restFrac){
+  const g = el("g", {}, parent);
+  el("circle", {cx:0, cy:0, r:r+11, fill:"var(--panel)", stroke:"var(--line)"}, g);
+  const ringBg = el("circle", {cx:0, cy:0, r:r+5, fill:"none", stroke:"#cfc6ae", "stroke-width":3}, g);
+  const ring = el("path", {fill:"none", stroke:"#26221a", "stroke-width":3}, g);
+  const med = el("g", {}, g);
+  el("circle", {cx:0, cy:0, r:r, fill:"#f5efe2", stroke:"#26221a", "stroke-width":1}, med);
+  el("path", {d:"M0,"+(-r)+" A"+r+","+r+" 0 0 1 0,"+r+" A"+(r/2)+","+(r/2)+" 0 0 1 0,0 A"+(r/2)+","+(r/2)+" 0 0 0 0,"+(-r)+" Z", fill:"#26221a"}, med);
+  el("circle", {cx:0, cy:-(r/2), r:r*0.16, fill:"#f5efe2"}, med);
+  el("circle", {cx:0, cy:(r/2), r:r*0.16, fill:"#26221a"}, med);
+  const label = txt(g, "", {"text-anchor":"middle", y:r+22, class:"lbl-sm"});
+  function update(frac){
+    const a0 = -Math.PI/2, a1 = a0 + frac*2*Math.PI;
+    const [x0,y0] = [ (r+5)*Math.cos(a0), (r+5)*Math.sin(a0) ], [x1,y1] = [ (r+5)*Math.cos(a1), (r+5)*Math.sin(a1) ];
+    ring.setAttribute("d", frac<=0 ? "" : frac>=1 ? "" :
+      "M"+x0+","+y0+" A"+(r+5)+","+(r+5)+" 0 "+(frac>0.5?1:0)+" 1 "+x1+","+y1);
+    if (frac>=1) ring.setAttribute("d","M"+(-r-5)+",0 A"+(r+5)+","+(r+5)+" 0 1 1 "+(r+5)+",0 A"+(r+5)+","+(r+5)+" 0 1 1 "+(-r-5)+",0");
+    med.setAttribute("transform", "rotate("+((frac-0.5)*180)+")");
+    label.textContent = Math.round(frac*100)+"% yang";
+  }
+  update(restFrac);
+  return {update};
+}
+/* Cycle overlays: posByPhase = {phase: [x,y]}. Generating = directed arcs flowing
+   around; controlling = star-polygon chords. Styles are deliberately unlike data edges. */
+function cycleOverlays(svg, posByPhase, showGen, showCtl, arcR){
+  const g = el("g", {"pointer-events":"none"}, svg);
+  if (showGen) GEN.forEach(([a,b]) => { if (!posByPhase[a]||!posByPhase[b]) return;
+    const A = posByPhase[a], B = posByPhase[b];
+    const mx = (A[0]+B[0])/2, my = (A[1]+B[1])/2, ml = Math.hypot(mx,my)||1;
+    const c = [mx/ml*arcR, my/ml*arcR];
+    const p = el("path", {d:"M"+A[0]+","+A[1]+" Q"+c[0]+","+c[1]+" "+B[0]+","+B[1], fill:"none",
+      stroke:"#2e7d46", "stroke-width":2.4, "stroke-opacity":0.85, "marker-end":"url(#arrG)"}, g);
+  });
+  if (showCtl) CTL.forEach(([a,b]) => { if (!posByPhase[a]||!posByPhase[b]) return;
+    const A = posByPhase[a], B = posByPhase[b];
+    el("path", {d:"M"+A[0]+","+A[1]+" L"+B[0]+","+B[1], fill:"none", stroke:"#b03a2e",
+      "stroke-width":1.8, "stroke-dasharray":"7 4", "stroke-opacity":0.8}, g);
+  });
+  return g;
+}
+function arrowDefs(svg){
+  const defs = el("defs", {}, svg);
+  const mk = el("marker", {id:"arrG", viewBox:"0 0 10 10", refX:8, refY:5, markerWidth:7, markerHeight:7, orient:"auto-start-reverse"}, defs);
+  el("path", {d:"M0,0 L10,5 L0,10 z", fill:"#2e7d46"}, mk);
+}
+
+/* ================= 1 · Directed chord, bound to records ================= */
+(function(){
+  const insp = document.getElementById("insp-flows");
+  const nodes = [];
+  PHASES.forEach(p => nodes.push({id:p, label:p+" "+PHASE_HZ[p], group:p, kind:"phase"}));
+  [["酸 sour","Wood"],["苦 bitter","Fire"],["甘 sweet","Earth"],["辛 pungent","Metal"],["咸 salty","Water"]]
+    .forEach(([f,p]) => nodes.push({id:"flavour:"+f, label:f, group:p, kind:"flavour"}));
+  [["spring","Wood"],["summer","Fire"],["late summer","Earth"],["autumn","Metal"],["winter","Water"]]
+    .forEach(([s,p]) => nodes.push({id:"season:"+s, label:s, group:p, kind:"season"}));
+  CLASSES.forEach(c => nodes.push({id:"class:"+c.id, label:c.hz+" "+c.name, group:c.phase, kind:"class", cls:c}));
+  TRIGRAMS.forEach(t => nodes.push({id:"tri:"+t.name, label:t.sym+" "+t.hz+" "+t.name, group:t.phase, kind:"trigram"}));
+  LUOSHU.forEach(p => { const tn = p.trigram ? TRIGRAMS.find(t=>t.name===p.trigram) : null;
+    nodes.push({id:"luo:"+p.n, label:p.n+" · "+p.dir+(tn ? " "+tn.hz : ""), group:p.phase, kind:"Luoshu position",
+      note: p.n===5 ? "The centre of the Luoshu. No trigram is placed here in the Later Heaven arrangement — the centre belongs to Earth, and the gap is left as it stands in the record." : null}); });
+  const idx = {}; nodes.forEach((n,i)=> idx[n.id]=i);
+  const flavourNode = p => "flavour:"+RECORDS.find(r=>r.scheme==="hongfan"&&r.family==="flavour"&&r.phase===p).object;
+  const seasonNode = p => "season:"+RECORDS.find(r=>r.scheme==="suwen4"&&r.family==="season"&&r.phase===p).object.replace(/^\S+ /,"");
+  const FLOWS = [];
+  RECORDS.filter(r=>r.scheme==="cycles").forEach(r =>
+    FLOWS.push({s:r.subject, t:r.object, kind: r.relation.indexOf("generates")===0 ? "gen":"ctl", w:3, records:[r]}));
+  RECORDS.filter(r=>r.scheme==="hongfan"&&r.family==="flavour").forEach(r =>
+    FLOWS.push({s:r.phase, t:flavourNode(r.phase), kind:"flavour", w:2, records:[r]}));
+  RECORDS.filter(r=>r.scheme==="suwen4"&&r.family==="season").forEach(r =>
+    FLOWS.push({s:r.phase, t:seasonNode(r.phase), kind:"season", w:2, records:[r]}));
+  CLASSES.forEach(c => {
+    const sRec = RECORDS.find(r=>r.scheme==="yueling"&&r.family==="creature class"&&r.relation==="season"&&r.subject===c.hz+" "+c.name);
+    const eRec = RECORDS.find(r=>r.scheme==="yueling"&&r.relation==="element"&&r.subject===c.hz+" "+c.name);
+    FLOWS.push({s:seasonNode(c.phase), t:"class:"+c.id, kind:"class", w:2, records:[sRec]});
+    FLOWS.push({s:"class:"+c.id, t:c.phase, kind:"class", w:1, records:[eRec]});
+  });
+  RECORDS.filter(r=>r.scheme==="later-heaven").forEach(r =>
+    FLOWS.push({s:"tri:"+r.subject.split(" ")[1], t:r.phase, kind:"luoshu", w:2, records:[r]}));
+  RECORDS.filter(r=>r.scheme==="luoshu").forEach(r => {
+    const n = r.subject.match(/^Luoshu (\d+)/)[1];
+    if (r.relation.indexOf("trigram")===0)
+      FLOWS.push({s:"luo:"+n, t:"tri:"+r.object.split(" ")[1], kind:"luoshu", w:2, records:[r]});
+    else
+      FLOWS.push({s:"luo:"+n, t:r.phase, kind:"luoshu", w:1, records:[r]});
+  });
+  let selection = null, centre1 = null;
+  function yyOfNode(n){
+    if (n.kind==="trigram"){ const t = TRIGRAMS.find(x=>"tri:"+x.name===n.id);
+      return {frac:triYang(t), kind:"exact — counted from the trigram's lines"}; }
+    if (n.kind==="phase") return {frac:PHASE_YY[n.id].yang, kind:"schematic · "+PHASE_YY[n.id].note};
+    return {frac:PHASE_YY[n.group].yang, kind:"schematic — its phase "+n.group+"'s value ("+PHASE_YY[n.group].note+")"};
+  }
+  function nodeDetail(n){
+    selection = n;
+    const recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+    const yy = yyOfNode(n); if (centre1) centre1.update(yy.frac);
+    let h = "<h3>"+esc(n.label)+"</h3><p class='sub'>"+esc(n.kind)+" · phase "+esc(n.group)+" · "+recs.length+" assertions in its links</p>"+
+      "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind)+"</p>";
+    if (n.note) h += "<p class='src'>"+esc(n.note)+"</p>";
+    if (n.cls) h += "<p class='src'>Criterion: "+esc(n.cls.criterion)+". Chief: "+esc(n.cls.head[0])+" ("+esc(n.cls.head[1])+").</p>";
+    insp.innerHTML = h + recordsHTML(recs, false);
+    applyIsolate();
+  }
+  let ribbonEls = [], arcEls = [];
+  function applyIsolate(){
+    const on = document.getElementById("flow-isolate").checked && selection;
+    ribbonEls.forEach(({path, flow}) => {
+      path.setAttribute("fill-opacity", !on ? 0.62 : (flow.s===selection.id||flow.t===selection.id ? 0.9 : 0.05));
+    });
+  }
+  function draw(){
+    const kinds = new Set([...document.querySelectorAll("#flow-controls input[data-kind]:checked")].map(i=>i.dataset.kind));
+    const flows = FLOWS.filter(f=>kinds.has(f.kind));
+    const m = nodes.map(()=>nodes.map(()=>0));
+    flows.forEach(f=> m[idx[f.s]][idx[f.t]] += f.w);
+    const size = 640, outer = size/2 - 92, inner = outer - 22;
+    const fig = document.getElementById("fig-flows"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+      "aria-label":"Directed chord diagram of flows among phases, flavours, seasons and creature classes"}, fig);
+    const {groups, chords} = chordLayout(m, 0.035, true);
+    arrowDefs(svg);
+    ribbonEls = []; arcEls = [];
+    chords.forEach(ch => {
+      const flow = flows.find(f=>idx[f.s]===ch.i && idx[f.t]===ch.j);
+      const p = el("path", {d:ribbonPath(inner-1, ch.s, ch.t), fill:PCOL[nodes[ch.j].group],
+        "fill-opacity":0.62, class:"hov"}, svg);
+      const title = el("title", {}, p); title.textContent = nodes[ch.i].label+" → "+nodes[ch.j].label;
+      p.addEventListener("click", ()=>{ insp.innerHTML = "<h3>"+esc(nodes[ch.i].label)+" → "+esc(nodes[ch.j].label)+"</h3>"+
+        "<p class='sub'>"+flow.records.length+" assertion"+(flow.records.length>1?"s":"")+" inside this ribbon</p>"+recordsHTML(flow.records,false); });
+      p.addEventListener("mouseover", ()=>{ if(!document.getElementById("flow-isolate").checked || !selection)
+        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", r.path===p?0.9:0.08)); });
+      p.addEventListener("mouseout", applyIsolate);
+      bindHover(p, ()=>hoverRecordsHTML(nodes[ch.i].label+" \u2192 "+nodes[ch.j].label, flow.records,
+        "This ribbon is the flow from <b>"+esc(nodes[ch.i].label)+"</b> (a "+esc(nodes[ch.i].kind)+", phase "+esc(nodes[ch.i].group)+") to <b>"+esc(nodes[ch.j].label)+"</b> (a "+esc(nodes[ch.j].kind)+", phase "+esc(nodes[ch.j].group)+"). It aggregates "+flow.records.length+" assertion"+(flow.records.length>1?"s":"")+":"));
+      if (ch.t.a1 - ch.t.a0 > 0.012){
+        const mid = (ch.t.a0+ch.t.a1)/2, tip = polar(inner+2, mid), b1 = polar(inner-13, ch.t.a0), b2 = polar(inner-13, ch.t.a1);
+        el("path", {d:"M"+tip[0]+","+tip[1]+" L"+b1[0]+","+b1[1]+" L"+b2[0]+","+b2[1]+" Z",
+          fill:PCOL[nodes[ch.j].group], "fill-opacity":0.85, "pointer-events":"none"}, svg);
+      }
+      ribbonEls.push({path:p, flow});
+    });
+    groups.forEach((g,i) => {
+      if (g.value<=0) return;
+      const p = el("path", {d:annulus(inner, outer, g.a0, g.a1), fill:PCOL[nodes[i].group], "fill-opacity":0.92, class:"hov"}, svg);
+      p.addEventListener("click", ()=>nodeDetail(nodes[i]));
+      p.addEventListener("mouseover", ()=>{ if(!selection || !document.getElementById("flow-isolate").checked)
+        ribbonEls.forEach(r=>r.path.setAttribute("fill-opacity", (r.flow.s===nodes[i].id||r.flow.t===nodes[i].id)?0.9:0.08)); });
+      p.addEventListener("mouseout", applyIsolate);
+      arcEls.push(p);
+      bindHover(p, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+        return hoverRecordsHTML(n.label, recs.slice(0,4),
+          "This arc is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" in the "+esc(n.group)+" phase group."+(n.note ? " "+esc(n.note) : "")+(n.cls ? " Criterion: "+esc(n.cls.criterion)+"." : "")+" Its links state:"); });
+      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
+      const t = txt(svg, nodes[i].label, {class:"lbl", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em", class:"lbl hov"});
+      t.addEventListener("click", ()=>nodeDetail(nodes[i]));
+      bindHover(t, ()=>{ const n = nodes[i], recs = FLOWS.filter(f=>f.s===n.id||f.t===n.id).flatMap(f=>f.records);
+        return hoverRecordsHTML(n.label, recs.slice(0,4), "This is <b>"+esc(n.label)+"</b> — a "+esc(n.kind)+" in the "+esc(n.group)+" phase group. Its links state:"); });
+    });
+    const ov = new Set([...document.querySelectorAll("#flow-controls input[data-overlay]:checked")].map(i=>i.dataset.overlay));
+    if (ov.size){ const pos = {}; PHASES.forEach((p,i)=>{ const g = groups[i];
+        pos[p] = polar(inner-16, (g.a0+g.a1)/2); });
+      cycleOverlays(svg, pos, ov.has("gen"), ov.has("ctl"), inner-52); }
+    const rest = nodes.reduce((a,n)=>a+yyOfNode(n).frac,0)/nodes.length;
+    centre1 = taijitu(svg, 30, rest);
+    if (selection) centre1.update(yyOfNode(selection).frac);
+    applyIsolate();
+  }
+  document.querySelectorAll("#flow-controls input").forEach(i=>i.addEventListener("change",draw));
+  window.__spa.register("flows", draw);
+})();
+
+/* ================= 2 · Layered dependency chord ================= */
+(function(){
+  const insp = document.getElementById("insp-tables");
+  const SCHEME_LABEL = {suwen4:"素問 ch. 4", suwen5:"素問 ch. 5", shize:"淮南子·時則", tianwen:"淮南子·天文",
+    hongfan:"尚書·洪範", lingshu:"靈樞 ch. 56", dixing:"淮南子·地形", jingshen:"淮南子·精神", yuelingc:"禮記·月令"};
+  function enabledSchemes(){ return [...document.querySelectorAll("#layer-controls input:checked")].map(i=>i.dataset.scheme); }
+  function familiesOf(schemes){
+    const seen = [], out = [];
+    for (const r of RECORDS) if (schemes.includes(r.scheme) && r.family!=="phase" && r.family!=="cycle" && !seen.includes(r.family)){ seen.push(r.family); out.push(r.family); }
+    return out;
+  }
+  function cellRecords(schemes, phase, family){
+    return RECORDS.filter(r=>schemes.includes(r.scheme) && r.phase===phase && r.family===family);
+  }
+  function conflicts(schemes, families){
+    const out = [];
+    families.forEach(f => PHASES.forEach(p => { const recs = cellRecords(schemes,p,f);
+      if (new Set(recs.map(r=>r.norm)).size > 1) out.push({phase:p, family:f, records:recs}); }));
+    return out;
+  }
+  let centre2 = null;
+  function showCell(phase, family, schemes){
+    const recs = cellRecords(schemes, phase, family);
+    if (centre2) centre2.update(PHASE_YY[phase].yang);
+    insp.innerHTML = "<h3>"+esc(phase)+" "+PHASE_HZ[phase]+" · "+esc(family)+"</h3>"+
+      "<p>Yin–yang ("+esc(phase)+"): "+yyBarHTML(PHASE_YY[phase].yang, "schematic · "+PHASE_YY[phase].note)+"</p>"+
+      "<p class='sub'>"+recs.length+" assertion"+(recs.length===1?"":"s")+" in this chord, from "+
+      [...new Set(recs.map(r=>r.schemeLabel))].join(", ")+"</p>"+recordsHTML(recs, true);
+  }
+  function showPhase(phase, schemes, families){
+    const recs = families.flatMap(f=>cellRecords(schemes, phase, f));
+    let h = "<h3><span class='swatch' style='background:"+PCOL[phase]+"'></span>"+esc(phase)+" "+PHASE_HZ[phase]+"</h3>"+
+      "<p class='sub'>"+recs.length+" assertions across the layered sources</p>";
+    families.forEach(f => { const cr = cellRecords(schemes, phase, f);
+      if (cr.length) h += "<p style='margin:10px 0 2px'><b>"+esc(f)+"</b></p>"+recordsHTML(cr, true); });
+    insp.innerHTML = h;
+  }
+  function showFamily(family, schemes){
+    let h = "<h3>"+esc(family)+"</h3><p class='sub'>All five phases, layered sources</p>";
+    PHASES.forEach(p => { const cr = cellRecords(schemes, p, family);
+      if (cr.length) h += "<p style='margin:10px 0 2px'><b>"+esc(p)+"</b></p>"+recordsHTML(cr, true); });
+    insp.innerHTML = h;
+  }
+  function draw(){
+    const schemes = enabledSchemes();
+    const fig = document.getElementById("fig-tables"); fig.innerHTML = "";
+    if (!schemes.length){ fig.innerHTML = "<div class='fallback'>No layers on — switch on at least one source above.</div>";
+      insp.innerHTML = "<h3>No layers on</h3><p class='sub'>The chords are built only from the sources switched on.</p>"; return; }
+    const families = familiesOf(schemes);
+    const names = [...PHASES, ...families];
+    const n = names.length, m = names.map(()=>names.map(()=>0));
+    families.forEach((f,fi) => PHASES.forEach((p,pi) => {
+      const c = new Set(cellRecords(schemes,p,f).map(r=>r.scheme)).size;
+      m[pi][5+fi] = c; m[5+fi][pi] = c; }));
+    const size = 640, outer = size/2 - 96, inner = outer - 20;
+    const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+      "aria-label":"Chord diagram of the layered correspondence tables"}, fig);
+    const {groups, chords} = chordLayout(m, 0.03, false);
+    const conf = conflicts(schemes, families);
+    const confKey = new Set(conf.map(c=>c.phase+"|"+c.family));
+    const col = i => i<5 ? PCOL[PHASES[i]] : "#9a8f76";
+    const ribbons = [];
+    chords.forEach(ch => {
+      const pi = ch.i<5 ? ch.i : ch.j, fi = (ch.i<5 ? ch.j : ch.i) - 5;
+      const phase = PHASES[pi], family = families[fi];
+      const isConf = confKey.has(phase+"|"+family);
+      const p = el("path", {d:ribbonPath(inner-1, ch.s, ch.t), fill:col(ch.j), "fill-opacity":0.55, class:"hov",
+        ...(isConf ? {stroke:"#7a2d0e", "stroke-width":1.6, "stroke-dasharray":"4 2"} : {})}, svg);
+      const title = el("title", {}, p); title.textContent = phase+" — "+family+(isConf ? " (sources differ)" : "");
+      p.addEventListener("click", ()=>showCell(phase, family, schemes));
+      p.addEventListener("mouseover", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.88:0.06)));
+      p.addEventListener("mouseout", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)));
+      bindHover(p, ()=>{ const recs = cellRecords(schemes, phase, family);
+        return hoverRecordsHTML(phase+" "+PHASE_HZ[phase]+" \u00b7 "+family, recs,
+          "This chord connects the phase <b>"+esc(phase)+"</b> with the family <b>"+esc(family)+"</b> — "+esc(familyExplain(family))+". Each layer on adds its own value:"+(isConf ? " <span class='hc-warn'>The layers disagree in this cell (outlined).</span>" : "")); });
+      ribbons.push(p);
+    });
+    groups.forEach((g,i) => {
+      if (g.value<=0) return;
+      const p = el("path", {d:annulus(inner, outer, g.a0, g.a1), fill:col(i), "fill-opacity":0.92, class:"hov"}, svg);
+      const act = ()=> i<5 ? showPhase(PHASES[i], schemes, families) : showFamily(families[i-5], schemes);
+      p.addEventListener("click", act);
+      p.addEventListener("mouseover", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)));
+      bindHover(p, ()=> i<5
+        ? hoverRecordsHTML(PHASES[i]+" "+PHASE_HZ[PHASES[i]], families.slice(0,3).flatMap(f=>cellRecords(schemes, PHASES[i], f)),
+            "This arc is the phase <b>"+esc(PHASES[i])+"</b>, one of the five phases (\u4e94\u884c). Its chords run to every family the layered sources assign to it. First families:")
+        : hoverRecordsHTML(families[i-5], PHASES.flatMap(pp=>cellRecords(schemes, pp, families[i-5]).slice(0,1)),
+            "This arc is the family <b>"+esc(families[i-5])+"</b> — "+esc(familyExplain(families[i-5]))+". One value per phase:"));
+      const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
+      const t = txt(svg, i<5 ? PHASES[i]+" "+PHASE_HZ[PHASES[i]] : families[i-5],
+        {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
+      t.addEventListener("click", act);
+      bindHover(t, ()=> i<5
+        ? "<h4>"+esc(PHASES[i])+" "+PHASE_HZ[PHASES[i]]+"</h4><p>This label is the phase <b>"+esc(PHASES[i])+"</b>. Click it for its whole row across the layered sources.</p>"
+        : "<h4>"+esc(families[i-5])+"</h4><p>This label is the family <b>"+esc(families[i-5])+"</b> — "+esc(familyExplain(families[i-5]))+". Click it for all five phases.</p>");
+    });
+    centre2 = taijitu(svg, 28, 0.5);
+    const total = RECORDS.filter(r=>schemes.includes(r.scheme)).length;
+    insp.innerHTML = "<h3>"+schemes.map(s=>SCHEME_LABEL[s]).join(" + ")+"</h3>"+
+      "<p class='sub'>"+total+" assertions in the layers now on · "+families.length+" families · "+
+      conf.length+" cell"+(conf.length===1?"":"s")+" where the sources disagree</p>"+
+      (conf.length ? "<p><b>Disagreements</b> (outlined chords):</p><ul>"+
+        conf.map(c=>"<li>"+esc(c.phase)+" · "+esc(c.family)+" — "+c.records.map(r=>esc(r.object)+" ("+esc(r.schemeLabel)+")").join(" vs ")+"</li>").join("")+"</ul>"
+        : "<p class='src'>No disagreements among the layers now on.</p>")+
+      "<p class='src'>Click a chord for the exact assertions inside it; click a phase or a family for its whole row.</p>";
+  }
+  document.querySelectorAll("#layer-controls input").forEach(i=>i.addEventListener("change",draw));
+  window.__spa.register("tables", draw);
+})();
+
+/* ================= 3 · Hierarchical edge bundling, bound to records ================= */
+(function(){
+  const insp = document.getElementById("insp-bundle");
+  let mode = "corr", beta = 0.85, selection = null;
+  let centre3 = null;
+  function yyForKey(key, inf){
+    if (!key) return null;
+    if (key.indexOf("phase:")===0){ const p = key.slice(6); return {frac:PHASE_YY[p].yang, kind:"schematic · "+PHASE_YY[p].note}; }
+    if (key.indexOf("tri:")===0){ const t = TRIGRAMS.find(x=>x.name===key.slice(4));
+      return t ? {frac:triYang(t), kind:"exact — counted from the trigram's lines"} : null; }
+    const ph = inf && inf.records && inf.records[0] && inf.records[0].phase;
+    if (ph) return {frac:PHASE_YY[ph].yang, kind:"schematic — its phase "+ph+"'s value ("+PHASE_YY[ph].note+")"};
+    return null;
+  }
+  const FULL = 680, R = FULL/2 - 118;
+  function buildTree(){
+    const info = new Map(), edges = [];
+    const phaseLeaf = p => ({name:p+" "+PHASE_HZ[p], key:"phase:"+p});
+    PHASES.forEach(p => info.set("phase:"+p, {title:p+" "+PHASE_HZ[p], sub:"phase",
+      records: RECORDS.filter(r=>r.phase===p && ["suwen4","suwen5","shize","tianwen","hongfan","lingshu","dixing","jingshen","yuelingc"].includes(r.scheme))}));
+    let groups;
+    if (mode==="corr"){
+      groups = SUWEN.families.map(([fname, vals]) => ({name:fname, children: vals.map((v,pi) => {
+        const key = "val:"+fname+":"+pi;
+        info.set(key, {title:v, sub:fname+" · "+PHASES[pi],
+          records:[RECORDS.find(r=>r.scheme==="suwen4"&&r.family===fname&&r.phase===PHASES[pi])]});
+        edges.push({s:key, t:"phase:"+PHASES[pi], phase:PHASES[pi],
+          records:[RECORDS.find(r=>r.scheme==="suwen4"&&r.family===fname&&r.phase===PHASES[pi])]});
+        return {name:v, key}; })}));
+    } else if (mode==="creatures"){
+      groups = CLASSES.map(c => { const cname = c.hz+" "+c.name, ckey = "class:"+c.id;
+        const classRecs = RECORDS.filter(r=>r.scheme==="yueling" && r.subject===cname);
+        info.set(ckey, {title:cname, sub:"creature class · "+c.season+" · "+c.phase,
+          body:"Criterion: "+c.criterion+".", records:classRecs});
+        edges.push({s:ckey, t:"phase:"+c.phase, phase:c.phase,
+          records:[RECORDS.find(r=>r.scheme==="yueling"&&r.relation==="element"&&r.subject===cname)]});
+        const kids = c.members.map(([mem,tier]) => { const key = "mem:"+c.id+":"+mem;
+          const rec = RECORDS.find(r=>r.scheme==="yueling"&&r.relation==="member of"&&r.subject===mem);
+          info.set(key, {title:mem, sub:"member of "+cname+" · "+tier,
+            body: tier==="contested" ? "Zheng Xuan's reading places tigers and leopards in the naked class; Gao You's tradition makes the tiger chief of the furred. Both assertions stand in the scheme, flagged — neither is resolved."
+              : tier==="predicted" ? "The class criterion ("+c.criterion+") places "+mem+" in this class; the scheme prices such outputs as derived, capped at 0.80."
+              : mem+" is named in the scheme as a member of the "+c.name+" class.",
+            records:[rec]});
+          edges.push({s:key, t:ckey, phase:c.phase, records:[rec]});
+          return {name:mem, key}; });
+        return {name:cname, key:ckey, children:kids, isClass:true}; });
+    } else if (mode==="luoshu") {
+      groups = [
+        {name:"trigrams", children: TRIGRAMS.map(t => { const key = "tri:"+t.name;
+          const rec = RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name);
+          info.set(key, {title:t.sym+" "+t.hz+" "+t.name, sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
+            body:"Three lines, bottom to top: "+t.lines.map(l=>l?"yang ———":"yin — —").join(", ")+".",
+            records:[rec]});
+          edges.push({s:key, t:"phase:"+t.phase, phase:t.phase, records:[rec]});
+          return {name:t.hz+" "+t.name, key}; })},
+        {name:"luoshu positions", children: LUOSHU.map(p => { const key = "luo:"+p.n;
+          const recs = RECORDS.filter(r=>r.scheme==="luoshu" && r.subject.indexOf("Luoshu "+p.n+" ·")===0);
+          const tn = p.trigram ? TRIGRAMS.find(t=>t.name===p.trigram) : null;
+          info.set(key, {title:"Luoshu "+p.n+" · "+p.dir, sub:"position "+p.n+" of nine · "+p.phase,
+            body: tn ? "The Later Heaven arrangement places "+tn.hz+" "+tn.name+" ("+tn.nature+") at this position. The Luoshu's rows, columns and diagonals each sum to 15."
+                     : "The centre of the Luoshu. No trigram is placed here in the Later Heaven arrangement — the centre belongs to Earth, and the gap is left as it stands in the record. The Luoshu's rows, columns and diagonals each sum to 15.",
+            records:recs});
+          if (tn) edges.push({s:key, t:"tri:"+p.trigram, phase:p.phase, records:[recs.find(r=>r.relation.indexOf("trigram")===0)]});
+          edges.push({s:key, t:"phase:"+p.phase, phase:p.phase, records:[recs.find(r=>r.relation.indexOf("phase")===0)]});
+          return {name:p.n+" · "+p.dir, key}; })}
+      ];
+    } else {
+      groups = [{name:"trigrams", children: TRIGRAMS.map(t => { const key = "tri:"+t.name;
+        const rec = {scheme:"later-heaven", schemeLabel:"Later Heaven arrangement", subject:t.hz+" "+t.name,
+          relation:"phase (Later Heaven)", object:t.phase+" "+PHASE_HZ[t.phase], tier:"arrangement",
+          source:"Later Heaven (King Wen) arrangement — "+t.dir, phase:t.phase, family:"trigram", norm:t.phase.toLowerCase()};
+        info.set(key, {title:t.sym+" "+t.hz+" "+t.name, sub:t.nature+" · Later Heaven: "+t.dir+", "+t.phase,
+          body:"Three lines, bottom to top: "+t.lines.map(l=>l?"yang ———":"yin — —").join(", ")+". Paired above or below another trigram it composes a hexagram; the eight trigrams compose all sixty-four.",
+          records:[rec]});
+        edges.push({s:key, t:"phase:"+t.phase, phase:t.phase, records:[rec]});
+        return {name:t.hz+" "+t.name, key}; })}];
+      OPPOSITES.forEach(([a,b]) => { const A=TRIGRAMS.find(t=>t.name===a), B=TRIGRAMS.find(t=>t.name===b);
+        const mk = (X,Y) => ({scheme:"king-wen", schemeLabel:"King Wen pairing", subject:X.hz+" "+X.name,
+          relation:"opposite in the King Wen pairing", object:Y.hz+" "+Y.name, tier:"arrangement",
+          source:"the paired-hexagram structure of the King Wen sequence", phase:null, family:"trigram", norm:""});
+        edges.push({s:"tri:"+a, t:"tri:"+b, phase:null, opp:true, records:[mk(A,B)]});
+        edges.push({s:"tri:"+b, t:"tri:"+a, phase:null, opp:true, records:[mk(B,A)]}); });
+    }
+    return {root:{name:"ansci", children:[{name:"phases", children:PHASES.map(phaseLeaf)}, ...groups]}, edges, info};
+  }
+  function layout(root){
+    const leaves = [];
+    (function walk(n, d, parent){ n.depth=d; n.parent=parent;
+      if (!n.children) leaves.push(n); else n.children.forEach(c=>walk(c, d+1, n)); })(root, 0, null);
+    const maxD = Math.max(...leaves.map(l=>l.depth));
+    leaves.forEach((l,i)=>{ l.angle = (i+0.5)/leaves.length*2*Math.PI; });
+    (function up(n){ if (n.children){ n.children.forEach(up);
+        n.angle = (n.children[0].angle + n.children[n.children.length-1].angle)/2; }
+      n.radius = R * n.depth/maxD; n.pos = polar(n.radius, n.angle); })(root);
+    return leaves;
+  }
+  function treePath(s, t){
+    const anc = []; let n = s; while (n){ anc.push(n); n = n.parent; }
+    const ancSet = new Set(anc);
+    const down = []; n = t; while (n && !ancSet.has(n)){ down.unshift(n); n = n.parent; }
+    const lca = n;
+    return [...anc.slice(0, anc.indexOf(lca)+1), ...down];
+  }
+  function smoothPath(pts){
+    if (pts.length < 3) return "M"+pts[0][0]+","+pts[0][1]+" L"+pts[pts.length-1][0]+","+pts[pts.length-1][1];
+    let d = "M"+pts[0][0]+","+pts[0][1];
+    for (let i=1;i<pts.length-1;i++){ const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+      d += " Q"+pts[i][0]+","+pts[i][1]+" "+mx+","+my; }
+    return d + " L"+pts[pts.length-1][0]+","+pts[pts.length-1][1];
+  }
+  let currentSVG = null, currentByKey = new Map(), currentEdges = [];
+  function draw(){
+    if (mode==="hex"){ drawHex(); return; }
+    const {root, edges, info} = buildTree();
+    const leaves = layout(root);
+    const byKey = new Map();
+    (function walk(n){ if (n.key) byKey.set(n.key, n); (n.children||[]).forEach(walk); })(root);
+    const fig = document.getElementById("fig-bundle"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL, role:"img",
+      "aria-label":"Hierarchical edge bundling diagram"}, fig);
+    currentSVG = svg; currentByKey = byKey;
+    arrowDefs(svg);
+    const ungroup = document.getElementById("ungroup").checked;
+    const isolate = document.getElementById("isolate").checked;
+    const drawn = edges.filter(e => byKey.has(e.s) && byKey.has(e.t)).map(e => ({...e, sn:byKey.get(e.s), tn:byKey.get(e.t)}));
+    currentEdges = drawn;
+    drawn.forEach((e, ei) => {
+      const incident = selection && (e.s===selection || e.t===selection);
+      if (isolate && selection && !incident) return;
+      let d;
+      if (ungroup || (isolate && selection)){
+        const off = ((ei % 7) - 3) * 0.012;
+        const a = polar(R, e.sn.angle + off), b = polar(R, e.tn.angle + off);
+        d = "M"+a[0]+","+a[1]+" Q0,0 "+b[0]+","+b[1];
+      } else {
+        const nodesOnPath = treePath(e.sn, e.tn);
+        const pts = nodesOnPath.map((nd, i, arr) => {
+          const t = arr.length===1 ? 0 : i/(arr.length-1);
+          const lx = e.sn.pos[0] + (e.tn.pos[0]-e.sn.pos[0])*t, ly = e.sn.pos[1] + (e.tn.pos[1]-e.sn.pos[1])*t;
+          return [beta*nd.pos[0] + (1-beta)*lx, beta*nd.pos[1] + (1-beta)*ly]; });
+        d = smoothPath(pts);
+      }
+      const colr = e.opp ? "#b0722a" : PCOL[e.phase];
+      const hit = el("path", {d, fill:"none", stroke:"transparent", "stroke-width":9, class:"hov"}, svg);
+      const p = el("path", {d, fill:"none", stroke:colr, "stroke-opacity": e.opp?0.55:0.34,
+        "stroke-width":1.1, "pointer-events":"none"}, svg);
+      e._path = p; e._hit = hit;
+      const show = () => { insp.innerHTML = "<h3>"+esc(e.records[0].subject)+" → "+esc(e.records[0].object)+"</h3>"+
+        "<p class='sub'>The assertion behind this edge</p>"+recordsHTML(e.records, e.records[0].tier==="contested"); };
+      hit.addEventListener("click", show);
+      hit.addEventListener("mouseover", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x===e?0.95:0.05); }); });
+      hit.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); });
+      bindHover(hit, ()=>hoverRecordsHTML(e.records[0].subject+" \u2192 "+e.records[0].object, e.records,
+        "This edge is one assertion, routed through the hierarchy:")); 
+    });
+    leaves.forEach(l => {
+      const lt = labelTransform(l.angle, l.radius);
+      const t = txt(svg, l.name, {class: leaves.length>40 ? "lbl-sm hov":"lbl hov",
+        transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.32em"});
+      if (selection === l.key) t.setAttribute("font-weight","700");
+      t.addEventListener("mouseover", ()=>{ drawn.forEach(x=>{ if (x._path)
+        x._path.setAttribute("stroke-opacity", (x.s===l.key||x.t===l.key)?0.95:0.05); }); });
+      t.addEventListener("mouseout", ()=>{ drawn.forEach(x=>{ if (x._path) x._path.setAttribute("stroke-opacity", x.opp?0.55:0.34); }); });
+      bindHover(t, ()=>{ const inf = info.get(l.key); if (!inf) return null;
+        return hoverRecordsHTML(inf.title, (inf.records||[]).slice(0,3),
+          "This name on the circle is <b>"+esc(inf.title)+"</b> — "+esc(inf.sub)+"."+(inf.body ? " "+esc(inf.body) : "")+" Its links state:"); });
+      t.addEventListener("click", ()=>{
+        selection = (selection === l.key) ? null : l.key;
+        const inf = info.get(l.key);
+        if (inf && selection){ const yy = yyForKey(l.key, inf);
+          if (yy && centre3) centre3.update(yy.frac);
+          insp.innerHTML = "<h3>"+esc(inf.title)+"</h3><p class='sub'>"+esc(inf.sub)+"</p>"+
+          (yy ? "<p>Yin–yang: "+yyBarHTML(yy.frac, yy.kind)+"</p>" : "")+
+          (inf.body?"<p>"+esc(inf.body)+"</p>":"")+recordsHTML(inf.records||[], false); }
+        draw();
+      });
+    });
+    { const posMap = {}; leaves.forEach(l=>{ if (l.key && l.key.indexOf("phase:")===0) posMap[l.key.slice(6)] = l.pos; });
+      if (Object.keys(posMap).length===5)
+        cycleOverlays(svg, posMap, document.getElementById("bov-gen").checked, document.getElementById("bov-ctl").checked, R*0.55);
+      const rest = leaves.reduce((a,l)=>{ const yy = yyForKey(l.key, info.get(l.key)); return a + (yy?yy.frac:0.5); }, 0)/Math.max(1,leaves.length);
+      centre3 = taijitu(svg, 26, rest); }
+    if (!selection)
+      insp.innerHTML = "<h3>Reading the bundle</h3><p class='sub'>Hover any name on the circle to trace its links. Click it for the assertion behind the link.</p>"+
+        (mode==="trigrams" ? "<p class='src'>Orange links join each trigram to its King Wen opposite: 乾–坤， 坎–離， 震–巽， 艮–兌.</p>" : "")+
+        (mode==="luoshu" ? "<p class='src'>Each Luoshu position draws two edges — to its trigram and to its phase — except the centre (5), which has no trigram in the Later Heaven arrangement and draws only its edge to Earth.</p>" : "");
+  }
+  /* ---- hexagram rings: core phases, trigram ring, hexagram rim ---- */
+  let hexSplit = 0, hexAnim = null, hexPts = new Map(), hexStore = null;
+  function setHexSplit(s){ hexSplit = s; if (!hexStore) return;
+    hexStore.hexGlyphs.forEach(({gU,gL,a}) => { const u = polar(1, a);
+      gU.setAttribute("transform", "translate("+(u[0]*8*s)+","+(u[1]*8*s)+")");
+      gL.setAttribute("transform", "translate("+(-u[0]*8*s)+","+(-u[1]*8*s)+")"); });
+    if (!selection) hexStore.ties.forEach(({path})=> path.setAttribute("stroke-opacity", 0.18+0.5*s));
+  }
+  function animateHexTo(target){ if (hexAnim) cancelAnimationFrame(hexAnim);
+    const from = hexSplit, t0 = performance.now();
+    const step = now => { const t = Math.min(1, (now-t0)/600), e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      setHexSplit(from+(target-from)*e); if (t<1) hexAnim = requestAnimationFrame(step); };
+    hexAnim = requestAnimationFrame(step);
+  }
+  function selectHex(key){ selection = (selection===key) ? null : key; applyHexSelection(); }
+  function applyHexSelection(){
+    if (!hexStore) return; const st = hexStore;
+    st.ties.forEach(({path})=> path.setAttribute("stroke-opacity", 0.18+0.5*hexSplit));
+    st.lowEdges.forEach(({path})=> { path.setAttribute("stroke-opacity",0.30); path.setAttribute("stroke-width",1.1); });
+    st.triEdges.forEach(({path})=> { path.setAttribute("stroke-opacity",0.45); path.setAttribute("stroke-width",1.4); });
+    st.hexLabels.forEach(({t})=> t.removeAttribute("font-weight"));
+    if (!selection){ if (centre3) centre3.update(0.5); return; }
+    if (selection.indexOf("tri:")===0){ const nm = selection.slice(4), t = TRIGRAMS.find(x=>x.name===nm);
+      if (centre3) centre3.update(triYang(t));
+      st.ties.forEach(({path,h})=> path.setAttribute("stroke-opacity", h.upper===nm?0.95:0.05));
+      st.lowEdges.forEach(({path,h})=> { const on = h.lower===nm;
+        path.setAttribute("stroke-opacity", on?0.95:0.06); if (on) path.setAttribute("stroke-width",2); });
+      st.hexLabels.forEach(({t:lab,h})=> { if (h.upper===nm||h.lower===nm) lab.setAttribute("font-weight","700"); });
+      insp.innerHTML = "<h3>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h3><p class='sub'>"+esc(t.nature)+" · Later Heaven "+esc(t.dir)+" · phase "+esc(t.phase)+"</p>"+
+        "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang")+"</p>"+
+        "<p><b>As upper trigram</b> — its rim sector: "+KW_ORDER.map(l=>{ const h=hexByPair(nm,l); return h.n+" "+h.name; }).join(", ")+".</p>"+
+        "<p><b>As lower trigram</b> — by edge: "+KW_ORDER.map(u=>{ const h=hexByPair(u,nm); return h.n+" "+h.name; }).join(", ")+".</p>"+
+        recordsHTML([RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)], false);
+    } else if (selection.indexOf("hex:")===0){ const h = HEXAGRAMS.find(x=>x.n===+selection.slice(4));
+      const U = TRIGRAMS.find(t=>t.name===h.upper), L = TRIGRAMS.find(t=>t.name===h.lower);
+      if (centre3) centre3.update(hexYang(h));
+      st.ties.forEach(({path,h:x})=> path.setAttribute("stroke-opacity", x===h?0.95:0.05));
+      st.lowEdges.forEach(({path,h:x})=> { path.setAttribute("stroke-opacity", x===h?0.95:0.06);
+        if (x===h) path.setAttribute("stroke-width",2); });
+      st.triEdges.forEach(({path,tri})=> path.setAttribute("stroke-opacity", (tri===h.upper||tri===h.lower)?0.8:0.08));
+      insp.innerHTML = "<h3>"+h.sym+" Hexagram "+h.n+" · "+esc(h.name)+"</h3>"+
+        "<p class='sub'>"+esc(U.hz)+" "+esc(U.name)+" over "+esc(L.hz)+" "+esc(L.name)+"</p>"+
+        "<div>"+glyphSVG(h, true)+"</div>"+
+        "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang")+"</p>"+
+        "<p>The derivation: upper trigram "+esc(U.hz)+" "+esc(U.name)+" ("+esc(U.nature)+") set above lower trigram "+
+        esc(L.hz)+" "+esc(L.name)+" ("+esc(L.nature)+") gives hexagram "+h.n+", "+esc(h.name)+", in the King Wen sequence.</p>"+
+        recordsHTML([hexRecord(h)], false);
+    } else if (selection.indexOf("phase:")===0){ const p = selection.slice(6);
+      if (centre3) centre3.update(PHASE_YY[p].yang);
+      const tris = TRIGRAMS.filter(t=>t.phase===p);
+      st.triEdges.forEach(({path,phase})=> path.setAttribute("stroke-opacity", phase===p?0.9:0.08));
+      insp.innerHTML = "<h3><span class='swatch' style='background:"+PCOL[p]+"'></span>"+esc(p)+" "+PHASE_HZ[p]+"</h3>"+
+        "<p>Yin–yang: "+yyBarHTML(PHASE_YY[p].yang, "schematic · "+PHASE_YY[p].note)+"</p>"+
+        "<p class='sub'>Trigrams of this phase in the Later Heaven arrangement: "+tris.map(t=>t.hz+" "+t.name+" ("+t.dir+")").join(", ")+".</p>"+
+        recordsHTML(tris.map(t=>RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)), false);
+    }
+  }
+  function drawHex(){
+    const fig = document.getElementById("fig-bundle"); fig.innerHTML = "";
+    const svg = el("svg", {viewBox:(-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL, role:"img",
+      "aria-label":"Hexagrams in rings: phases at the core, trigrams in the middle ring, hexagrams on the rim"}, fig);
+    currentSVG = svg; arrowDefs(svg);
+    const rP = 62, rT = 136, rH = R;
+    hexPts = new Map();
+    const triAngle = {}; KW_ORDER.forEach((nm,i)=> triAngle[nm] = i*(2*Math.PI/8));
+    const phaseAngle = {}; PHASES.forEach((p,i)=> phaseAngle[p] = i*(2*Math.PI/5));
+    [rP, rT, rH].forEach(rr => el("circle", {cx:0, cy:0, r:rr, fill:"none", stroke:"var(--line)", "stroke-width":1}, svg));
+    KW_ORDER.forEach(nm => { const a = triAngle[nm] - Math.PI/8;
+      const p1 = polar(rT-26, a), p2 = polar(rH+16, a);
+      el("path", {d:"M"+p1[0]+","+p1[1]+" L"+p2[0]+","+p2[1], stroke:"var(--line)", "stroke-width":1}, svg); });
+    const store = {hexGlyphs:[], ties:[], lowEdges:[], triEdges:[], triNodes:{}, hexLabels:[], phaseNodes:{}};
+    TRIGRAMS.forEach(t => { const a = triAngle[t.name], b = phaseAngle[t.phase];
+      const A = polar(rT, a), B = polar(rP, b); hexPts.set("tri:"+t.name, A);
+      const mid = polar((rT+rP)/2, (a+b)/2);
+      const p = el("path", {d:"M"+A[0]+","+A[1]+" Q"+mid[0]+","+mid[1]+" "+B[0]+","+B[1], fill:"none",
+        stroke:PCOL[t.phase], "stroke-opacity":0.45, "stroke-width":1.4, class:"hov"}, svg);
+      store.triEdges.push({path:p, tri:t.name, phase:t.phase});
+      p.addEventListener("click", ()=> selectHex("tri:"+t.name));
+      bindHover(p, ()=>hoverRecordsHTML(t.hz+" "+t.name+" \u2192 "+t.phase, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+        "This line ties the trigram in the middle ring to its phase at the core:"));
+    });
+    KW_ORDER.forEach(u => { const U = TRIGRAMS.find(t=>t.name===u);
+      KW_ORDER.map(l => hexByPair(u,l)).forEach((h, k) => {
+        const a = triAngle[u] - Math.PI/8 + (k+0.5)*(Math.PI/4)/8;
+        hexPts.set("hex:"+h.n, polar(rH, a));
+        const base = polar(rH-24, a), up = polar(rT+18, triAngle[u]);
+        const tie = el("path", {d:"M"+base[0]+","+base[1]+" L"+up[0]+","+up[1],
+          stroke:PCOL[U.phase], "stroke-opacity":0.18, "stroke-width":1.2}, svg);
+        store.ties.push({path:tie, h});
+        const lp = polar(rT, triAngle[h.lower]);
+        const mid = polar((rH+rT)/2 + 10, (a+triAngle[h.lower])/2);
+        const le = el("path", {d:"M"+base[0]+","+base[1]+" Q"+mid[0]+","+mid[1]+" "+lp[0]+","+lp[1],
+          fill:"none", stroke:"#8a6d3b", "stroke-opacity":0.30, "stroke-width":1.1, class:"hov"}, svg);
+        store.lowEdges.push({path:le, h});
+        le.addEventListener("click", ()=> selectHex("hex:"+h.n));
+        bindHover(le, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
+          return "<h4>Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This edge runs from hexagram "+h.n+" on the rim to its <b>lower trigram</b>, <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b>. The hexagram is composed of upper trigram "+esc(U2.hz)+" "+esc(U2.name)+" set above lower trigram "+esc(L2.hz)+" "+esc(L2.name)+".</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
+        const gU = el("g", {}, svg), gL = el("g", {}, svg);
+        const drawLines = (grp, three, topIdx) => { three.forEach((v, j) => {
+          const rr = rH - 2 - (topIdx+j)*3.4, half = 0.030;
+          if (v){ const p1 = polar(rr, a-half), p2 = polar(rr, a+half);
+            el("path", {d:"M"+p1[0]+","+p1[1]+" L"+p2[0]+","+p2[1], stroke:"var(--ink)", "stroke-width":1.7, class:"hov"}, grp); }
+          else { const p1 = polar(rr, a-half), p2 = polar(rr, a-0.008), p3 = polar(rr, a+0.008), p4 = polar(rr, a+half);
+            el("path", {d:"M"+p1[0]+","+p1[1]+" L"+p2[0]+","+p2[1]+" M"+p3[0]+","+p3[1]+" L"+p4[0]+","+p4[1], stroke:"var(--ink)", "stroke-width":1.7, class:"hov"}, grp); } }); };
+        drawLines(gU, h.linesTop.slice(0,3), 0);
+        drawLines(gL, h.linesTop.slice(3), 3);
+        [gU,gL].forEach(g=> { g.addEventListener("click", ()=> selectHex("hex:"+h.n));
+          bindHover(g, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
+            return "<h4>"+h.sym+" Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>These six lines on the rim are hexagram "+h.n+": the top three lines are the upper trigram <b>"+esc(U2.hz)+" "+esc(U2.name)+"</b> ("+esc(U2.nature)+"), the bottom three the lower trigram <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b> ("+esc(L2.nature)+"). A solid line is yang, a broken line is yin \u2014 "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang.</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 King Wen sequence, no. "+h.n+"</p>"; }); });
+        store.hexGlyphs.push({h, gU, gL, a});
+        const lt = labelTransform(a, rH+4);
+        const lab = txt(svg, h.n+" "+h.name, {class:"lbl-sm hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.32em"});
+        lab.addEventListener("click", ()=> selectHex("hex:"+h.n));
+        bindHover(lab, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
+          return "<h4>Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This rim label is hexagram "+h.n+", composed of "+esc(U2.hz)+" "+esc(U2.name)+" above "+esc(L2.hz)+" "+esc(L2.name)+". It sits in its upper trigram's sector.</p>"; });
+        store.hexLabels.push({t:lab, h});
+      });
+    });
+    TRIGRAMS.forEach(t => { const a = triAngle[t.name], pos = polar(rT, a);
+      const C = 2*Math.PI*14, frac = triYang(t);
+      el("circle", {cx:pos[0], cy:pos[1], r:14, fill:"var(--panel)", stroke:"#cfc6ae", "stroke-width":3}, svg);
+      el("circle", {cx:pos[0], cy:pos[1], r:14, fill:"none", stroke:"#26221a", "stroke-width":3,
+        "stroke-dasharray":(frac*C)+" "+C, transform:"rotate(-90 "+pos[0]+" "+pos[1]+")"}, svg);
+      const s = txt(svg, t.sym, {x:pos[0], y:pos[1]+5, "text-anchor":"middle", "font-size":15, class:"hov"});
+      s.addEventListener("click", ()=> selectHex("tri:"+t.name));
+      bindHover(s, ()=>hoverRecordsHTML(t.sym+" "+t.hz+" "+t.name, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+        "This middle-ring node is the trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"), placed "+esc(t.dir)+" in the Later Heaven arrangement. Its three lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+" \u2014 "+t.lines.reduce((a,b)=>a+b,0)+" of 3 yang. As an upper or lower trigram it composes 16 of the 64 hexagrams."));
+      const lt = labelTransform(a, rT+16);
+      const nm = txt(svg, t.hz+" "+t.name, {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
+      nm.addEventListener("click", ()=> selectHex("tri:"+t.name));
+      bindHover(nm, ()=> "<h4>"+esc(t.hz)+" "+esc(t.name)+"</h4><p>The trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+") \u2014 phase "+esc(t.phase)+", Later Heaven "+esc(t.dir)+". Click for the hexagrams it composes.</p>");
+      store.triNodes[t.name] = {sym:s, name:nm};
+    });
+    PHASES.forEach(p => { const pos = polar(rP, phaseAngle[p]); hexPts.set("phase:"+p, pos);
+      const c = el("circle", {cx:pos[0], cy:pos[1], r:13, fill:PCOL[p], "fill-opacity":0.92, class:"hov"}, svg);
+      const s = txt(svg, PHASE_HZ[p], {x:pos[0], y:pos[1]+4, "text-anchor":"middle", "font-size":12, fill:"#fff", class:"hov"});
+      [c,s].forEach(e2=> { e2.addEventListener("click", ()=> selectHex("phase:"+p));
+        bindHover(e2, ()=> "<h4>"+esc(p)+" "+PHASE_HZ[p]+"</h4><p>This core node is the phase <b>"+esc(p)+"</b> \u2014 yin\u2013yang "+Math.round(PHASE_YY[p].yang*100)+"% yang (schematic \u00b7 "+esc(PHASE_YY[p].note)+"). Trigrams of this phase in the Later Heaven arrangement: "+TRIGRAMS.filter(t=>t.phase===p).map(t=>t.hz+" "+t.name).join(", ")+".</p>"); });
+      store.phaseNodes[p] = {c, s};
+    });
+    const posMap = {}; PHASES.forEach(p=> posMap[p] = polar(rP, phaseAngle[p]));
+    cycleOverlays(svg, posMap, document.getElementById("bov-gen").checked, document.getElementById("bov-ctl").checked, rP+16);
+    centre3 = taijitu(svg, 24, 0.5);
+    hexStore = store;
+    setHexSplit(hexSplit);
+    if (selection) applyHexSelection();
+    else insp.innerHTML = "<h3>The sixty-four, in rings</h3><p class='sub'>Core: the five phases. Middle ring: the eight trigrams — the dark arc on each trigram's ring is its yang proportion, exact from its lines. Rim: the sixty-four hexagrams inside their upper trigram's sector, each with a tie to that trigram and one edge to its lower trigram. Click a trigram, a hexagram or a phase.</p><p>Yin–yang (whole rim): "+yyBarHTML(0.5, "exact — 192 of the 384 lines are yang")+"</p>";
+  }
+  document.querySelectorAll("#hex-state button").forEach(b=> b.addEventListener("click", ()=>{
+    document.querySelectorAll("#hex-state button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    if (mode!=="hex"){ mode = "hex"; selection = null;
+      document.querySelectorAll("#bundle-seg button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.mode==="hex"?"true":"false"));
+      draw(); }
+    animateHexTo(b.dataset.state==="decomposed" ? 1 : 0);
+  }));
+
+  document.querySelectorAll("#bundle-seg button").forEach(b=> b.addEventListener("click", ()=>{
+    document.querySelectorAll("#bundle-seg button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true"); mode = b.dataset.mode; selection = null; draw();
+  }));
+  document.getElementById("tension").addEventListener("input", e=>{ beta = e.target.value/100; draw(); });
+  document.getElementById("ungroup").addEventListener("change", draw);
+  document.getElementById("isolate").addEventListener("change", draw);
+  document.getElementById("bov-gen").addEventListener("change", draw);
+  document.getElementById("bov-ctl").addEventListener("change", draw);
+  document.getElementById("zoom-sel").addEventListener("click", ()=>{
+    if (!selection || !currentSVG) return;
+    const pts = [];
+    if (mode==="hex"){
+      if (hexPts.has(selection)) pts.push(hexPts.get(selection));
+      if (selection.indexOf("tri:")===0){ const nm = selection.slice(4);
+        HEXAGRAMS.forEach(h=>{ if (h.upper===nm||h.lower===nm) pts.push(hexPts.get("hex:"+h.n)); }); }
+      if (selection.indexOf("hex:")===0){ const hh = HEXAGRAMS.find(x=>x.n===+selection.slice(4));
+        if (hh){ pts.push(hexPts.get("tri:"+hh.upper), hexPts.get("tri:"+hh.lower)); } }
+      for (let i=pts.length-1;i>=0;i--) if (!pts[i]) pts.splice(i,1);
+    } else {
+      currentEdges.forEach(e => { if (e.s===selection || e.t===selection){ pts.push(e.sn.pos, e.tn.pos); } });
+      const sel = currentByKey.get(selection); if (sel) pts.push(sel.pos);
+    }
+    if (!pts.length) return;
+    const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+    const pad = 90;
+    const x0 = Math.min(...xs)-pad, y0 = Math.min(...ys)-pad;
+    const w = Math.max(Math.max(...xs)-Math.min(...xs)+2*pad, 200), h = Math.max(Math.max(...ys)-Math.min(...ys)+2*pad, 200);
+    currentSVG.setAttribute("viewBox", x0+" "+y0+" "+w+" "+h);
+  });
+  document.getElementById("zoom-reset").addEventListener("click", ()=>{
+    if (currentSVG) currentSVG.setAttribute("viewBox", (-FULL/2)+" "+(-FULL/2)+" "+FULL+" "+FULL);
+  });
+  window.__spa.register("bundle", draw);
+})();
+
+/* ================= 4 · Composition chord: 8 trigrams, 64 ribbons ================= */
+(function(){
+  window.__spa.register("composition", function(){
+  const insp = document.getElementById("insp-comp");
+  const names = KW_ORDER.slice(); const idx = {}; names.forEach((n,i)=>idx[n]=i);
+  const m = names.map(()=>names.map(()=>0));
+  HEXAGRAMS.forEach(h=> m[idx[h.upper]][idx[h.lower]] += 1);
+  const size = 600, outer = size/2 - 96, inner = outer - 20;
+  const fig = document.getElementById("fig-comp"); fig.innerHTML = "";
+  const svg = el("svg", {viewBox:(-size/2)+" "+(-size/2)+" "+size+" "+size, role:"img",
+    "aria-label":"Directed chord of the trigram composition: one ribbon per hexagram"}, fig);
+  const {groups, chords} = chordLayout(m, 0.04, true);
+  const ribbons = [];
+  let centre4 = null;
+  function triDetail(t){
+    if (centre4) centre4.update(triYang(t));
+    insp.innerHTML = "<h3>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h3><p class='sub'>"+esc(t.nature)+" · phase "+esc(t.phase)+"</p>"+
+      "<p>Yin–yang: "+yyBarHTML(triYang(t), "exact — "+t.lines.reduce((a,b)=>a+b,0)+" of 3 lines yang")+"</p>"+
+      "<p><b>As upper</b>: "+KW_ORDER.map(l=>{ const h=hexByPair(t.name,l); return h.n+" "+h.name; }).join(", ")+".</p>"+
+      "<p><b>As lower</b>: "+KW_ORDER.map(u=>{ const h=hexByPair(u,t.name); return h.n+" "+h.name; }).join(", ")+".</p>";
+  }
+  function hexDetail(h){
+    const U = TRIGRAMS.find(t=>t.name===h.upper), L = TRIGRAMS.find(t=>t.name===h.lower);
+    if (centre4) centre4.update(hexYang(h));
+    insp.innerHTML = "<h3>"+h.sym+" Hexagram "+h.n+" · "+esc(h.name)+"</h3>"+
+      "<p class='sub'>"+esc(U.hz)+" "+esc(U.name)+" over "+esc(L.hz)+" "+esc(L.name)+"</p>"+
+      "<div>"+glyphSVG(h, true)+"</div>"+
+      "<p>Yin–yang: "+yyBarHTML(hexYang(h), "exact — "+h.linesTop.reduce((a,b)=>a+b,0)+" of 6 lines yang")+"</p>"+
+      recordsHTML([hexRecord(h)], false);
+  }
+  chords.forEach(ch => {
+    const h = hexByPair(names[ch.i], names[ch.j]);
+    const target = TRIGRAMS.find(t=>t.name===names[ch.j]);
+    const p = el("path", {d:ribbonPath(inner-1, ch.s, ch.t), fill:PCOL[target.phase], "fill-opacity":0.55, class:"hov"}, svg);
+    const title = el("title", {}, p); title.textContent = "Hexagram "+h.n+" "+h.name+": "+names[ch.i]+" over "+names[ch.j];
+    p.addEventListener("click", ()=>hexDetail(h));
+    p.addEventListener("mouseover", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity", r===p?0.9:0.07)));
+    p.addEventListener("mouseout", ()=>ribbons.forEach(r=>r.setAttribute("fill-opacity",0.55)));
+    bindHover(p, ()=>{ const U2 = TRIGRAMS.find(t=>t.name===h.upper), L2 = TRIGRAMS.find(t=>t.name===h.lower);
+      return "<h4>"+h.sym+" Hexagram "+h.n+" \u00b7 "+esc(h.name)+"</h4><p>This ribbon <b>is</b> hexagram "+h.n+": it runs from the upper trigram <b>"+esc(U2.hz)+" "+esc(U2.name)+"</b> ("+esc(U2.nature)+") to the lower trigram <b>"+esc(L2.hz)+" "+esc(L2.name)+"</b> ("+esc(L2.nature)+") \u2014 a hexagram is one trigram set above another, and there is exactly one for every ordered pair. "+h.linesTop.reduce((a,b)=>a+b,0)+" of its 6 lines are yang (solid); the rest are yin (broken).</p><p class='hc-meta'>composition of the trigrams \u00b7 derived \u2014 8 \u00d7 8 composition \u2014 King Wen sequence, no. "+h.n+"</p>"; });
+    if (ch.t.a1 - ch.t.a0 > 0.012){
+      const mid = (ch.t.a0+ch.t.a1)/2, tip = polar(inner+2, mid), b1 = polar(inner-13, ch.t.a0), b2 = polar(inner-13, ch.t.a1);
+      el("path", {d:"M"+tip[0]+","+tip[1]+" L"+b1[0]+","+b1[1]+" L"+b2[0]+","+b2[1]+" Z",
+        fill:PCOL[target.phase], "fill-opacity":0.85, "pointer-events":"none"}, svg);
+    }
+    ribbons.push(p);
+  });
+  groups.forEach((g,i) => {
+    if (g.value<=0) return;
+    const t = TRIGRAMS.find(x=>x.name===names[i]);
+    const p = el("path", {d:annulus(inner, outer, g.a0, g.a1), fill:PCOL[t.phase], "fill-opacity":0.92, class:"hov"}, svg);
+    p.addEventListener("click", ()=>triDetail(t));
+    bindHover(p, ()=>hoverRecordsHTML(t.sym+" "+t.hz+" "+t.name, [RECORDS.find(r=>r.scheme==="later-heaven"&&r.subject===t.hz+" "+t.name)],
+      "This arc is the trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"). Ribbons leaving it are the 8 hexagrams where it is the upper trigram; ribbons arriving are the 8 where it is the lower. Its lines, bottom to top: "+t.lines.map(l=>l?"yang (solid)":"yin (broken)").join(", ")+"."));
+    const mid = (g.a0+g.a1)/2, lt = labelTransform(mid, outer+2);
+    const tx = txt(svg, t.sym+" "+t.hz+" "+t.name, {class:"lbl hov", transform:lt.transform, "text-anchor":lt.anchor, x:lt.x, dy:"0.35em"});
+    tx.addEventListener("click", ()=>triDetail(t));
+    bindHover(tx, ()=> "<h4>"+t.sym+" "+esc(t.hz)+" "+esc(t.name)+"</h4><p>The trigram <b>"+esc(t.hz)+" "+esc(t.name)+"</b> ("+esc(t.nature)+"), phase "+esc(t.phase)+". Click for the sixteen hexagrams it takes part in.</p>");
+  });
+  centre4 = taijitu(svg, 26, 0.5);
+  });
+})();
+</script>
+
+<script>
+"use strict";
+(function(){
+  var ORDER = ["flows","tables","bundle","composition"];
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-tab]"));
+  var panels = {};
+  ORDER.forEach(function(id){ panels[id]=document.getElementById(id); });
+  var current = "flows";
+  function idFromHash(){
+    var h = (location.hash||"").replace("#","");
+    // allow old anchors too
+    if (h==="flows"||h==="tables"||h==="bundle"||h==="composition") return h;
+    return null;
+  }
+  function activate(id, opts){
+    opts = opts||{};
+    if (!panels[id]) id="flows";
+    current=id;
+    // ensure diagram is built on first open
+    if (window.__spa) window.__spa.ensure(id);
+    tabs.forEach(function(b){
+      var on = b.getAttribute("data-tab")===id;
+      b.setAttribute("aria-selected", on?"true":"false");
+      b.tabIndex = on?0:-1;
+      if (on && opts.focus) b.focus();
+    });
+    ORDER.forEach(function(k){ if(panels[k]) panels[k].hidden = (k!==id); });
+    if (opts.hash !== false){
+      try{ history.replaceState(null,"","#"+id); }catch(e){}
+    }
+    if (opts.scroll !== false){
+      // keep tab bar in view without jumping far
+      var bar = document.querySelector(".tabbar");
+      if (bar){ var r = bar.getBoundingClientRect(); if (r.top < 0 || r.top > 120) window.scrollTo({top: window.scrollY + r.top - 8, behavior:"smooth"}); }
+    }
+  }
+  tabs.forEach(function(b, idx){
+    b.addEventListener("click", function(){ activate(b.getAttribute("data-tab"), {scroll:false}); });
+    b.addEventListener("keydown", function(e){
+      var ni=null;
+      if (e.key==="ArrowRight") ni=(idx+1)%tabs.length;
+      else if (e.key==="ArrowLeft") ni=(idx-1+tabs.length)%tabs.length;
+      else if (e.key==="Home") ni=0;
+      else if (e.key==="End") ni=tabs.length-1;
+      if (ni!==null){ e.preventDefault(); activate(tabs[ni].getAttribute("data-tab"), {focus:true, scroll:false}); }
+    });
+  });
+  window.addEventListener("hashchange", function(){ var id=idFromHash(); if(id && id!==current) activate(id,{scroll:false, hash:false}); });
+  var start = idFromHash() || "flows";
+  activate(start, {hash:false, scroll:false});
+  // expose for verification / other panels linking
+  window.__spaActivate = activate;
+  window.__spaCurrent = function(){ return current; };
+})();
+</script>
+
+<script>
+"use strict";
+/* ===== Overlay restructuring: graph full-viewport; every panel starts COLLAPSED
+   as a slim handle at the stage edge, expands on demand, narrow + translucent.
+   Expanding a side panel re-pads the stage so the graph re-centres in the
+   remaining space — a panel never covers the graph's centre or rim. ===== */
+(function(){
+  var main = document.querySelector("main");
+  /* site head: title + collapsed About panel holding the lede and sources */
+  var h1 = main.querySelector(":scope > h1"), lede = main.querySelector(":scope > .lede"), footer = main.querySelector(":scope > footer");
+  var head = document.createElement("div"); head.className = "site-head";
+  var aboutBtn = document.createElement("button"); aboutBtn.type = "button"; aboutBtn.className = "about-btn";
+  aboutBtn.textContent = "About & sources"; aboutBtn.setAttribute("aria-expanded","false");
+  var aboutPanel = document.createElement("div"); aboutPanel.className = "about-panel";
+  if (lede) aboutPanel.appendChild(lede);
+  if (footer) aboutPanel.appendChild(footer);
+  aboutBtn.addEventListener("click", function(){
+    var open = aboutPanel.classList.toggle("open");
+    aboutBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  if (h1) head.appendChild(h1);
+  head.appendChild(aboutBtn); head.appendChild(aboutPanel);
+  main.insertBefore(head, main.firstChild);
+
+  function makeOverlay(panel, kind, label, bodyEl){
+    var wrap = document.createElement("div"); wrap.className = "ov " + kind;
+    var handle = document.createElement("button"); handle.type = "button"; handle.className = "ov-handle";
+    handle.textContent = label; handle.setAttribute("aria-expanded","false");
+    var body = document.createElement("div"); body.className = "ov-body";
+    body.appendChild(bodyEl);
+    handle.addEventListener("click", function(){
+      var open = wrap.classList.toggle("open");
+      handle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (kind === "ov-left") panel.classList.toggle("has-left-open", open);
+      if (kind === "ov-right") panel.classList.toggle("has-right-open", open);
+    });
+    wrap.appendChild(handle); wrap.appendChild(body);
+    panel.appendChild(wrap);
+    return wrap;
+  }
+  document.querySelectorAll(".tab-panel").forEach(function(panel){
+    /* info: section heading + intro, top-left corner pill */
+    var h2 = panel.querySelector(":scope > h2"), intro = panel.querySelector(":scope > .sec-intro");
+    if (h2 && intro){
+      var infoBox = document.createElement("div");
+      infoBox.appendChild(h2); infoBox.appendChild(intro);
+      makeOverlay(panel, "ov-info", "About this diagram", infoBox);
+    } else if (h2){
+      var ib2 = document.createElement("div"); ib2.appendChild(h2);
+      makeOverlay(panel, "ov-info", "About this diagram", ib2);
+    }
+    /* controls: left-edge vertical handle */
+    var controls = panel.querySelector(".controls");
+    if (controls) makeOverlay(panel, "ov-left", "Controls", controls);
+    /* inspector: right-edge vertical handle; clicking the graph opens it */
+    var insp = panel.querySelector("aside.inspector");
+    if (insp){
+      var wrap = makeOverlay(panel, "ov-right", "Details", insp);
+      var fig = panel.querySelector("figure");
+      if (fig) fig.addEventListener("click", function(){
+        if (!wrap.classList.contains("open")){
+          wrap.classList.add("open");
+          wrap.querySelector(".ov-handle").setAttribute("aria-expanded","true");
+          panel.classList.add("has-right-open");
+        }
+      });
+    }
+  });
+  document.addEventListener("click", function(e){ if (!e.target.closest || !e.target.closest("svg")) hideHover(); });
+})();
+</script>
+</body>
+</html>
